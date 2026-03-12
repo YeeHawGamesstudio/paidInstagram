@@ -1,0 +1,427 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  FAN
+  CREATOR
+  ADMIN
+}
+
+enum CreatorState {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+// Separate approval and verification lifecycles let compliance expand later
+// without overloading the public visibility state on CreatorProfile.
+enum CreatorApprovalStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  ACTION_REQUIRED
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum CreatorVerificationStatus {
+  NOT_STARTED
+  SUBMITTED
+  IN_REVIEW
+  ACTION_REQUIRED
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum UserAdultAccessStatus {
+  UNKNOWN
+  SELF_ATTESTED
+  VERIFIED
+  BLOCKED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INCOMPLETE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum PostVisibility {
+  PUBLIC
+  SUBSCRIBER_ONLY
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum MediaAccessType {
+  PUBLIC
+  SUBSCRIBER_ONLY
+  PAID
+}
+
+enum TransactionType {
+  SUBSCRIPTION
+  MESSAGE_UNLOCK
+  MEDIA_UNLOCK
+}
+
+enum TransactionStatus {
+  PENDING
+  REQUIRES_ACTION
+  SUCCEEDED
+  FAILED
+  CANCELED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
+}
+
+enum BillingEventProcessingStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum ReportTargetType {
+  USER
+  CREATOR_PROFILE
+  POST
+  MESSAGE
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum CreatorApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                          String                @id @default(cuid())
+  email                       String                @unique
+  role                        UserRole              @default(FAN)
+  isActive                    Boolean               @default(true)
+  adultAccessStatus           UserAdultAccessStatus @default(UNKNOWN)
+  adultAcknowledgedAt         DateTime?
+  adultPolicyAcceptedAt       DateTime?
+  profile                     Profile?
+  creatorProfile              CreatorProfile?
+  sentMessages                Message[]             @relation("MessageSender")
+  fanSubscriptions            Subscription[]        @relation("FanSubscriptions")
+  fanConversations            Conversation[]        @relation("FanConversations")
+  messageUnlocks              MessageUnlock[]       @relation("UnlockPurchaser")
+  transactions                Transaction[]
+  reportsFiled                Report[]              @relation("ReportsFiled")
+  reportsReviewed             Report[]              @relation("ReportsReviewedBy")
+  reportsReceived             Report[]              @relation("ReportedUser")
+  creatorApplications         CreatorApplication[]  @relation("CreatorApplicant")
+  reviewedCreatorApplications CreatorApplication[]  @relation("CreatorApplicationReviewer")
+  adminActions                AdminActionLog[]      @relation("AdminActor")
+  adminTargetLogs             AdminActionLog[]      @relation("AdminTargetUser")
+  createdAt                   DateTime              @default(now())
+  updatedAt                   DateTime              @updatedAt
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName  String
+  username     String?  @unique
+  avatarUrl    String?
+  bio          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CreatorProfile {
+  id                     String          @id @default(cuid())
+  userId                 String          @unique
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug                   String          @unique
+  state                  CreatorState    @default(PENDING)
+  approvalStatus         CreatorApprovalStatus    @default(SUBMITTED)
+  verificationStatus     CreatorVerificationStatus @default(NOT_STARTED)
+  headline               String?
+  bio                    String?
+  isAiCreator            Boolean         @default(true)
+  adultContentEnabled    Boolean         @default(true)
+  adultContentDisclosure String?
+  subscriptionPriceCents Int             @default(999)
+  currency               String          @default("usd")
+  approvedAt             DateTime?
+  suspendedAt            DateTime?
+  verificationSubmittedAt DateTime?
+  verificationReviewedAt DateTime?
+  verificationNotes      String?
+  complianceNotes        String?
+  policyAcceptedAt       DateTime?
+  dmcaContactEmail       String?
+  posts                  Post[]
+  subscriptions          Subscription[]
+  conversations          Conversation[]
+  reports                Report[]        @relation("ReportedCreatorProfile")
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  fanId            String
+  creatorProfileId String
+  fan              User               @relation("FanSubscriptions", fields: [fanId], references: [id], onDelete: Cascade)
+  creatorProfile   CreatorProfile     @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  transactions     Transaction[]
+  billingEvents    BillingEvent[]
+  provider         String             @default("mock")
+  providerCustomerRef String?
+  providerSubscriptionRef String?     @unique
+  status           SubscriptionStatus @default(ACTIVE)
+  priceCents       Int
+  currency         String             @default("usd")
+  startedAt        DateTime           @default(now())
+  endsAt           DateTime?
+  canceledAt       DateTime?
+  billingAnchorAt  DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd DateTime?
+  cancelAtPeriodEnd Boolean           @default(false)
+  lastPaymentFailureAt DateTime?
+  lastPaymentFailureCode String?
+  lastPaymentFailureMessage String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@unique([fanId, creatorProfileId])
+  @@index([creatorProfileId, status])
+}
+
+model Post {
+  id               String         @id @default(cuid())
+  creatorProfileId String
+  creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  title            String?
+  caption          String?
+  body             String?
+  visibility       PostVisibility @default(PUBLIC)
+  isPublished      Boolean        @default(true)
+  publishedAt      DateTime?
+  mediaAssets      MediaAsset[]
+  reports          Report[]       @relation("ReportedPost")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([creatorProfileId, visibility, publishedAt])
+}
+
+model MediaAsset {
+  id               String          @id @default(cuid())
+  kind             MediaKind
+  url              String
+  thumbnailUrl     String?
+  altText          String?
+  accessType       MediaAccessType @default(PUBLIC)
+  unlockPriceCents Int?
+  currency         String          @default("usd")
+  sortOrder        Int             @default(0)
+  postId           String?
+  post             Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  messageId        String?
+  message          Message?        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  unlocks          MessageUnlock[] @relation("UnlockedMediaAsset")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([postId, sortOrder])
+  @@index([messageId, sortOrder])
+}
+
+model Conversation {
+  id               String         @id @default(cuid())
+  fanId            String
+  creatorProfileId String
+  fan              User           @relation("FanConversations", fields: [fanId], references: [id], onDelete: Cascade)
+  creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  messages         Message[]
+  lastMessageAt    DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([fanId, creatorProfileId])
+  @@index([creatorProfileId, lastMessageAt])
+}
+
+model Message {
+  id               String          @id @default(cuid())
+  conversationId   String
+  senderId         String
+  conversation     Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender           User            @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  body             String?
+  previewText      String?
+  isLocked         Boolean         @default(false)
+  unlockPriceCents Int?
+  currency         String          @default("usd")
+  mediaAssets      MediaAsset[]
+  unlocks          MessageUnlock[] @relation("UnlockedMessage")
+  reports          Report[]        @relation("ReportedMessage")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageUnlock {
+  id           String       @id @default(cuid())
+  purchaserId  String
+  purchaser    User         @relation("UnlockPurchaser", fields: [purchaserId], references: [id], onDelete: Cascade)
+  messageId    String?
+  message      Message?     @relation("UnlockedMessage", fields: [messageId], references: [id], onDelete: Cascade)
+  mediaAssetId String?
+  mediaAsset   MediaAsset?  @relation("UnlockedMediaAsset", fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  transaction  Transaction?
+  unlockedAt   DateTime     @default(now())
+
+  @@unique([purchaserId, messageId])
+  @@unique([purchaserId, mediaAssetId])
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  status          TransactionStatus @default(SUCCEEDED)
+  amountCents     Int
+  currency        String            @default("usd")
+  provider        String            @default("mock")
+  providerRef     String?
+  idempotencyKey  String?           @unique
+  billingReason   String?
+  failureCode     String?
+  failureMessage  String?
+  providerCustomerRef String?
+  providerPaymentMethodRef String?
+  metadata        Json?
+  subscriptionId  String?
+  subscription    Subscription?     @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  messageUnlockId String?           @unique
+  messageUnlock   MessageUnlock?    @relation(fields: [messageUnlockId], references: [id], onDelete: SetNull)
+  billingEvents   BillingEvent[]
+  requiresActionAt DateTime?
+  processedAt     DateTime?
+  failedAt        DateTime?
+  refundedAt      DateTime?
+  disputedAt      DateTime?
+  reconciledAt    DateTime?
+  lastProviderSyncAt DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([userId, type, createdAt])
+}
+
+model BillingEvent {
+  id            String                       @id @default(cuid())
+  provider      String
+  eventId       String
+  eventType     String
+  status        BillingEventProcessingStatus @default(PENDING)
+  payload       Json
+  transactionId String?
+  transaction   Transaction?                 @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  subscriptionId String?
+  subscription  Subscription?                @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  receivedAt    DateTime                     @default(now())
+  processedAt   DateTime?
+  errorMessage  String?
+
+  @@unique([provider, eventId])
+  @@index([status, receivedAt])
+}
+
+model Report {
+  id                     String          @id @default(cuid())
+  reporterId             String
+  reporter               User            @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType             ReportTargetType
+  reason                 String
+  details                String?
+  status                 ReportStatus    @default(OPEN)
+  targetUserId           String?
+  targetUser             User?           @relation("ReportedUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetCreatorProfileId String?
+  targetCreatorProfile   CreatorProfile? @relation("ReportedCreatorProfile", fields: [targetCreatorProfileId], references: [id], onDelete: SetNull)
+  targetPostId           String?
+  targetPost             Post?           @relation("ReportedPost", fields: [targetPostId], references: [id], onDelete: SetNull)
+  targetMessageId        String?
+  targetMessage          Message?        @relation("ReportedMessage", fields: [targetMessageId], references: [id], onDelete: SetNull)
+  reviewedById           String?
+  reviewedBy             User?           @relation("ReportsReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  resolvedAt             DateTime?
+  adminActionLogs        AdminActionLog[]
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+}
+
+model CreatorApplication {
+  id              String                   @id @default(cuid())
+  applicantId     String
+  applicant       User                     @relation("CreatorApplicant", fields: [applicantId], references: [id], onDelete: Cascade)
+  requestedSlug   String
+  bio             String?
+  pitch           String?
+  status          CreatorApplicationStatus @default(SUBMITTED)
+  requestedAdultContent Boolean            @default(false)
+  verificationStatus    CreatorVerificationStatus @default(NOT_STARTED)
+  reviewedById    String?
+  reviewedBy      User?                    @relation("CreatorApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  decisionNotes   String?
+  complianceNotes String?
+  adminActionLogs AdminActionLog[]
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model AdminActionLog {
+  id                   String               @id @default(cuid())
+  adminId              String
+  admin                User                 @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+  action               String
+  notes                String?
+  metadata             Json?
+  targetUserId         String?
+  targetUser           User?                @relation("AdminTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  reportId             String?
+  report               Report?              @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  creatorApplicationId String?
+  creatorApplication   CreatorApplication?  @relation(fields: [creatorApplicationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime             @default(now())
+
+  @@index([adminId, createdAt])
+}
