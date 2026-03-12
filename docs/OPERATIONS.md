@@ -77,9 +77,10 @@ Backup and restore are infrastructure responsibilities, but the application assu
 Before calling the system production-ready, confirm:
 
 1. `APP_ENV=production` and `NODE_ENV=production`
-2. demo auth and demo data fallback are disabled
-3. `MEDIA_SIGNING_SECRET` is set
+2. `DATABASE_URL`, `AUTH_SECRET`, and `MEDIA_SIGNING_SECRET` are set
+3. demo auth and demo data fallback are disabled
 4. `ALLOWED_MEDIA_HOSTS` is set for real media origins
 5. billing is either intentionally unavailable or backed by a real provider
-6. logs and `/api/health` are connected to monitoring and alerting
-7. database backup and restore ownership is defined
+6. fan signup, fan login, and creator pending-access routing have been validated
+7. logs and `/api/health` are connected to monitoring and alerting
+8. database backup and restore ownership is defined

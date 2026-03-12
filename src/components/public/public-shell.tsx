@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
 
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui/button";
+import { getOptionalViewer, getViewerHomePath } from "@/lib/auth/viewer";
 import { publicComplianceLinks } from "@/lib/compliance/scaffolding";
 import { siteConfig } from "@/lib/config/site";
 
@@ -13,7 +15,10 @@ const publicNavItems = [
   { label: "Sign up", href: "/signup" },
 ] as const;
 
-export function PublicShell({ children }: Readonly<{ children: ReactNode }>) {
+export async function PublicShell({ children }: Readonly<{ children: ReactNode }>) {
+  const viewer = await getOptionalViewer();
+  const accountHref = viewer ? getViewerHomePath(viewer) : "/login";
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-white/8 bg-[rgba(9,9,11,0.72)] supports-[backdrop-filter]:bg-[rgba(9,9,11,0.62)] backdrop-blur-2xl">
@@ -52,9 +57,12 @@ export function PublicShell({ children }: Readonly<{ children: ReactNode }>) {
             ))}
           </div>
 
-          <Button asChild size="sm" className="hidden shrink-0 md:inline-flex">
-            <Link href="/discover">Explore creators</Link>
-          </Button>
+          <div className="hidden items-center gap-2 md:flex">
+            <Button asChild size="sm" variant={viewer ? "outline" : "default"} className="shrink-0">
+              <Link href={accountHref}>{viewer ? "Dashboard" : "Explore creators"}</Link>
+            </Button>
+            {viewer ? <SignOutButton className="h-9 px-4 text-xs" variant="ghost" /> : null}
+          </div>
         </div>
 
         <div className="mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6 md:hidden">
@@ -67,6 +75,12 @@ export function PublicShell({ children }: Readonly<{ children: ReactNode }>) {
               {item.label}
             </Link>
           ))}
+          <Link
+            href={accountHref}
+            className="whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-muted-foreground transition active:scale-[0.99] hover:border-primary/40 hover:bg-white/[0.06] hover:text-foreground"
+          >
+            {viewer ? "Dashboard" : "Explore creators"}
+          </Link>
         </div>
       </header>
 

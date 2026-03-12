@@ -121,6 +121,10 @@ enum CreatorApplicationStatus {
 model User {
   id                          String                @id @default(cuid())
   email                       String                @unique
+  name                        String?
+  image                       String?
+  emailVerified               DateTime?
+  passwordHash                String?
   role                        UserRole              @default(FAN)
   isActive                    Boolean               @default(true)
   adultAccessStatus           UserAdultAccessStatus @default(UNKNOWN)
@@ -140,8 +144,47 @@ model User {
   reviewedCreatorApplications CreatorApplication[]  @relation("CreatorApplicationReviewer")
   adminActions                AdminActionLog[]      @relation("AdminActor")
   adminTargetLogs             AdminActionLog[]      @relation("AdminTargetUser")
+  accounts                    Account[]
+  sessions                    Session[]
   createdAt                   DateTime              @default(now())
   updatedAt                   DateTime              @updatedAt
+}
+
+model Account {
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@unique([token])
 }
 
 model Profile {

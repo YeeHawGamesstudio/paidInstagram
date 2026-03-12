@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Sparkles } from "lucide-react";
 
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RoleNavigation } from "@/components/shared/role-navigation";
 import { adminPlatformMetrics } from "@/lib/admin/demo-data";
@@ -35,6 +36,7 @@ export function AdminShell({ children }: AdminShellProps) {
                     <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground/70">
                       Internal tooling
                     </span>
+                    <SignOutButton className="h-8 px-3 text-[11px]" variant="ghost" />
                   </div>
 
                   <h1 className="mt-5 font-display text-4xl sm:text-5xl">Structured oversight for platform safety</h1>

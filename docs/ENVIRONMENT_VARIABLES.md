@@ -90,6 +90,25 @@ Recommended values:
 - staging: `info`
 - production: `info` or `warn`, depending on platform logging volume requirements
 
+## Authentication
+
+### `AUTH_SECRET`
+
+Required:
+
+- yes
+
+Purpose:
+
+- signs and verifies Auth.js session state
+
+Operational notes:
+
+- required in every environment
+- use a long random secret
+- do not reuse between staging and production
+- Vercel builds and runtime will fail if this is missing
+
 ## Demo And Local Development Controls
 
 ### `ALLOW_DEMO_AUTH`
@@ -100,7 +119,7 @@ Required:
 
 Purpose:
 
-- allows the app to resolve a demo viewer for local development flows
+- legacy local-development shortcut for auto-selecting a demo viewer without signing in
 
 Operational notes:
 
@@ -265,7 +284,8 @@ Default:
 APP_ENV="development"
 NODE_ENV="development"
 LOG_LEVEL="debug"
-ALLOW_DEMO_AUTH="true"
+AUTH_SECRET="replace-with-a-local-auth-secret"
+ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="true"
 BILLING_PROVIDER="mock"
 ```
@@ -276,6 +296,7 @@ BILLING_PROVIDER="mock"
 APP_ENV="staging"
 NODE_ENV="production"
 LOG_LEVEL="info"
+AUTH_SECRET="replace-with-staging-auth-secret"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="false"
 MEDIA_SIGNING_SECRET="replace-with-staging-secret"
@@ -287,6 +308,7 @@ MEDIA_SIGNING_SECRET="replace-with-staging-secret"
 APP_ENV="production"
 NODE_ENV="production"
 LOG_LEVEL="info"
+AUTH_SECRET="replace-with-production-auth-secret"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="false"
 MEDIA_SIGNING_SECRET="replace-with-production-secret"

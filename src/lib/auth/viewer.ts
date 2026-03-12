@@ -3,9 +3,9 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
-import { type Prisma, type UserRole } from "@/generated/prisma/client";
+import { auth } from "@/auth";
+import { CreatorState, type Prisma, type UserRole } from "@/generated/prisma/client";
 import { canAccessSection, type AppSection } from "@/lib/auth/access";
-import { env } from "@/lib/config/env";
 import { prisma } from "@/lib/prisma/client";
 
 const viewerInclude = {
@@ -24,6 +24,13 @@ export class AccessDeniedError extends Error {
   }
 }
 
+export class PendingApprovalError extends AccessDeniedError {
+  constructor(message = "Creator access is pending approval.") {
+    super(message);
+    this.name = "PendingApprovalError";
+  }
+}
+
 function getSectionDeniedMessage(section: AppSection) {
   if (section === "fan" || section === "creator") {
     return "Sign in is required to access this area.";
@@ -37,25 +44,21 @@ function getSectionDeniedMessage(section: AppSection) {
 }
 
 export const getOptionalViewer = cache(async (): Promise<Viewer | null> => {
-  if (!env.allowDemoAuth || !env.demoViewerEmail) {
+  const session = await auth();
+  const viewerId = session?.user?.id;
+
+  if (!viewerId) {
     return null;
   }
 
-  const preferredViewer = await prisma.user.findUnique({
+  const viewer = await prisma.user.findUnique({
     where: {
-      email: env.demoViewerEmail,
+      id: viewerId,
     },
     include: viewerInclude,
   });
 
-  if (
-    preferredViewer?.isActive &&
-    (!env.demoViewerRole || preferredViewer.role === env.demoViewerRole)
-  ) {
-    return preferredViewer;
-  }
-
-  return null;
+  return viewer?.isActive ? viewer : null;
 });
 
 export async function requireViewer() {
@@ -78,8 +81,28 @@ export async function requireRole(role: UserRole) {
   return viewer;
 }
 
+export function hasApprovedCreatorAccess(viewer: Pick<Viewer, "role" | "creatorProfile"> | null) {
+  return viewer?.role === "CREATOR" && viewer.creatorProfile?.state === CreatorState.APPROVED;
+}
+
+export function getViewerHomePath(viewer: Pick<Viewer, "role" | "creatorProfile">) {
+  if (viewer.role === "ADMIN") {
+    return "/admin";
+  }
+
+  if (viewer.role === "CREATOR") {
+    return hasApprovedCreatorAccess(viewer) ? "/creator" : "/creator-access";
+  }
+
+  return "/fan";
+}
+
 export async function requireSectionAccess(section: AppSection) {
   const viewer = await getOptionalViewer();
+
+  if (section === "creator" && viewer?.role === "CREATOR" && !hasApprovedCreatorAccess(viewer)) {
+    throw new PendingApprovalError();
+  }
 
   if (!canAccessSection(viewer?.role ?? null, section)) {
     throw new AccessDeniedError(getSectionDeniedMessage(section));
@@ -95,6 +118,10 @@ export async function redirectIfUnauthorized(
   try {
     await requireSectionAccess(section);
   } catch (error) {
+    if (error instanceof PendingApprovalError) {
+      redirect("/creator-access");
+    }
+
     if (error instanceof AccessDeniedError) {
       redirect(redirectPath);
     }

@@ -43,12 +43,14 @@ That separation should include:
 Before deploying, confirm:
 
 1. required environment variables are present
-2. `MEDIA_SIGNING_SECRET` is set
-3. staging and production do not enable demo auth
-4. staging and production do not enable demo data fallback
-5. production does not use the mock billing provider
-6. database schema is up to date
-7. `/api/health` is monitored by the hosting platform
+2. `DATABASE_URL` is set in the target environment before the build starts
+3. `AUTH_SECRET` is set
+4. `MEDIA_SIGNING_SECRET` is set
+5. staging and production do not enable demo auth
+6. staging and production do not enable demo data fallback
+7. production does not use the mock billing provider
+8. database schema is up to date
+9. `/api/health` is monitored by the hosting platform
 
 ## Build And Start
 
@@ -70,8 +72,10 @@ After deployment:
 2. confirm the readiness payload has no failing checks
 3. confirm structured logs are being collected by the hosting platform
 4. load a public page
-5. load a protected route and verify it behaves correctly for authenticated access
-6. if billing is enabled, verify webhook delivery and logging in the target environment
+5. verify fan signup and login succeed
+6. verify a creator account can sign in but is redirected to the pending-access page until approved
+7. load a protected route and verify it behaves correctly for authenticated access
+8. if billing is enabled, verify webhook delivery and logging in the target environment
 
 ## Rollback And Recovery Notes
 
@@ -92,6 +96,7 @@ The app is more deployable than before, but production still requires external s
 
 - managed PostgreSQL
 - secret management
+- an approval workflow for creator applications
 - centralized log retention
 - uptime checks and alerting
 - ingress or edge rate limiting

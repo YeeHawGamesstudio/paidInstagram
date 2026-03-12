@@ -1,8 +1,11 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { hash } from "bcryptjs";
 
 import {
+  CreatorApprovalStatus,
   CreatorApplicationStatus,
   CreatorState,
+  CreatorVerificationStatus,
   MediaAccessType,
   MediaKind,
   PostVisibility,
@@ -19,6 +22,7 @@ const connectionString = process.env.DATABASE_URL;
 const appEnv =
   process.env.APP_ENV ?? (process.env.NODE_ENV === "production" ? "production" : "development");
 const allowNonLocalSeed = process.env.ALLOW_NON_LOCAL_SEED === "true";
+const SEED_PASSWORD = "Password123!";
 
 if (!connectionString) {
   throw new Error("DATABASE_URL is not set.");
@@ -29,7 +33,7 @@ function ensureSafeSeedTarget() {
     throw new Error("Seeding is disabled when APP_ENV is staging or production.");
   }
 
-  const databaseUrl = new URL(connectionString);
+  const databaseUrl = new URL(connectionString!);
   const host = databaseUrl.hostname.toLowerCase();
   const isLocalDatabase = ["localhost", "127.0.0.1", "::1"].includes(host);
 
@@ -50,6 +54,7 @@ function daysAgo(days: number) {
 
 async function seed() {
   ensureSafeSeedTarget();
+  const passwordHash = await hash(SEED_PASSWORD, 12);
 
   await prisma.adminActionLog.deleteMany();
   await prisma.report.deleteMany();
@@ -63,11 +68,17 @@ async function seed() {
   await prisma.creatorApplication.deleteMany();
   await prisma.creatorProfile.deleteMany();
   await prisma.profile.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.verificationToken.deleteMany();
   await prisma.user.deleteMany();
 
   const admin = await prisma.user.create({
     data: {
       email: "admin@onlyclaw.dev",
+      name: "OnlyClaw Admin",
+      emailVerified: new Date(),
+      passwordHash,
       role: UserRole.ADMIN,
       profile: {
         create: {
@@ -84,6 +95,9 @@ async function seed() {
   const fanA = await prisma.user.create({
     data: {
       email: "mia@onlyclaw.dev",
+      name: "Mia Monroe",
+      emailVerified: new Date(),
+      passwordHash,
       role: UserRole.FAN,
       profile: {
         create: {
@@ -100,6 +114,9 @@ async function seed() {
   const fanB = await prisma.user.create({
     data: {
       email: "jay@onlyclaw.dev",
+      name: "Jay Carter",
+      emailVerified: new Date(),
+      passwordHash,
       role: UserRole.FAN,
       profile: {
         create: {
@@ -116,7 +133,10 @@ async function seed() {
   const applicant = await prisma.user.create({
     data: {
       email: "applicant@onlyclaw.dev",
-      role: UserRole.FAN,
+      name: "Nova Applicant",
+      emailVerified: new Date(),
+      passwordHash,
+      role: UserRole.CREATOR,
       profile: {
         create: {
           displayName: "Nova Applicant",
@@ -132,6 +152,9 @@ async function seed() {
   const luna = await prisma.user.create({
     data: {
       email: "luna@onlyclaw.dev",
+      name: "Luna Byte",
+      emailVerified: new Date(),
+      passwordHash,
       role: UserRole.CREATOR,
       profile: {
         create: {
@@ -145,6 +168,8 @@ async function seed() {
         create: {
           slug: "luna-byte",
           state: CreatorState.APPROVED,
+          approvalStatus: CreatorApprovalStatus.APPROVED,
+          verificationStatus: CreatorVerificationStatus.VERIFIED,
           headline: "Neon cyber idol",
           bio: "A futuristic AI creator posting stylized city teases and subscriber scenes.",
           isAiCreator: true,
@@ -160,6 +185,9 @@ async function seed() {
   const ivy = await prisma.user.create({
     data: {
       email: "ivy@onlyclaw.dev",
+      name: "Ivy Orbit",
+      emailVerified: new Date(),
+      passwordHash,
       role: UserRole.CREATOR,
       profile: {
         create: {
@@ -173,6 +201,8 @@ async function seed() {
         create: {
           slug: "ivy-orbit",
           state: CreatorState.APPROVED,
+          approvalStatus: CreatorApprovalStatus.APPROVED,
+          verificationStatus: CreatorVerificationStatus.VERIFIED,
           headline: "Soft-space dreamer",
           bio: "Dreamy AI creator blending orbital aesthetics with intimate premium content.",
           isAiCreator: true,
@@ -188,6 +218,9 @@ async function seed() {
   const vega = await prisma.user.create({
     data: {
       email: "vega@onlyclaw.dev",
+      name: "Vega Vale",
+      emailVerified: new Date(),
+      passwordHash,
       role: UserRole.CREATOR,
       profile: {
         create: {
@@ -201,6 +234,8 @@ async function seed() {
         create: {
           slug: "vega-vale",
           state: CreatorState.APPROVED,
+          approvalStatus: CreatorApprovalStatus.APPROVED,
+          verificationStatus: CreatorVerificationStatus.VERIFIED,
           headline: "Fantasy voice and velvet lore",
           bio: "An AI fantasy persona focused on teasing story-driven premium content.",
           isAiCreator: true,
@@ -638,6 +673,7 @@ async function seed() {
   console.log(`Seeded admin: ${admin.email}`);
   console.log(`Seeded fans: ${fans}`);
   console.log(`Seeded AI creators: ${creators}`);
+  console.log(`Seeded login password for local accounts: ${SEED_PASSWORD}`);
   console.log(
     `Seeded posts: ${[
       lunaPublicPost.id,
