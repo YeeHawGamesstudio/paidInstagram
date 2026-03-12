@@ -7,6 +7,7 @@ import {
   shouldRequireAdultAccess,
 } from "@/lib/compliance/scaffolding";
 import { REQUEST_ID_HEADER } from "@/lib/observability/request";
+import { updateSupabaseSession } from "@/lib/supabase/middleware";
 
 function applySecurityHeaders(response: NextResponse) {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -35,18 +36,14 @@ function applySecurityHeaders(response: NextResponse) {
   return response;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
   const requestId = requestHeaders.get(REQUEST_ID_HEADER) ?? crypto.randomUUID();
   requestHeaders.set(REQUEST_ID_HEADER, requestId);
 
   if (!shouldRequireAdultAccess(pathname)) {
-    const response = NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    const response = await updateSupabaseSession(request, requestHeaders);
     response.headers.set(REQUEST_ID_HEADER, requestId);
     return applySecurityHeaders(response);
   }
@@ -54,11 +51,7 @@ export function middleware(request: NextRequest) {
   const adultAccessCookie = request.cookies.get(ADULT_ACCESS_COOKIE_NAME)?.value;
 
   if (isAdultAccessAcknowledged(adultAccessCookie)) {
-    const response = NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+    const response = await updateSupabaseSession(request, requestHeaders);
     response.headers.set(REQUEST_ID_HEADER, requestId);
     return applySecurityHeaders(response);
   }

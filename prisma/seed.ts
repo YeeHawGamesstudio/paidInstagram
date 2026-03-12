@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { hash } from "bcryptjs";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   CreatorApprovalStatus,
@@ -19,13 +19,32 @@ import {
 } from "../src/generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const appEnv =
   process.env.APP_ENV ?? (process.env.NODE_ENV === "production" ? "production" : "development");
 const allowNonLocalSeed = process.env.ALLOW_NON_LOCAL_SEED === "true";
 const SEED_PASSWORD = "Password123!";
+const DEMO_ACCOUNT_EMAILS = [
+  "admin@onlyclaw.dev",
+  "mia@onlyclaw.dev",
+  "jay@onlyclaw.dev",
+  "applicant@onlyclaw.dev",
+  "luna@onlyclaw.dev",
+  "ivy@onlyclaw.dev",
+  "vega@onlyclaw.dev",
+] as const;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL is not set.");
+}
+
+if (!supabaseUrl) {
+  throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set.");
+}
+
+if (!supabaseServiceRoleKey) {
+  throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set.");
 }
 
 function ensureSafeSeedTarget() {
@@ -47,14 +66,111 @@ function ensureSafeSeedTarget() {
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 function daysAgo(days: number) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 }
 
+async function deleteExistingDemoAuthUsers() {
+  const pageSize = 200;
+
+  for (let page = 1; page < 10; page += 1) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page,
+      perPage: pageSize,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const users = data.users.filter((user) => user.email && DEMO_ACCOUNT_EMAILS.includes(user.email as (typeof DEMO_ACCOUNT_EMAILS)[number]));
+
+    for (const user of users) {
+      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+    }
+
+    if (data.users.length < pageSize) {
+      break;
+    }
+  }
+}
+
+async function createDemoAuthUser(input: {
+  displayName: string;
+  email: string;
+  role: UserRole;
+}) {
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email: input.email,
+    email_confirm: true,
+    password: SEED_PASSWORD,
+    user_metadata: {
+      displayName: input.displayName,
+      role: input.role,
+    },
+  });
+
+  if (error || !data.user) {
+    throw error ?? new Error(`Unable to create Supabase auth user for ${input.email}.`);
+  }
+
+  return data.user.id;
+}
+
 async function seed() {
   ensureSafeSeedTarget();
-  const passwordHash = await hash(SEED_PASSWORD, 12);
+  const passwordHash = "supabase-managed-password";
+
+  await deleteExistingDemoAuthUsers();
+
+  const authUserIds = {
+    admin: await createDemoAuthUser({
+      displayName: "OnlyClaw Admin",
+      email: "admin@onlyclaw.dev",
+      role: UserRole.ADMIN,
+    }),
+    fanA: await createDemoAuthUser({
+      displayName: "Mia Monroe",
+      email: "mia@onlyclaw.dev",
+      role: UserRole.FAN,
+    }),
+    fanB: await createDemoAuthUser({
+      displayName: "Jay Carter",
+      email: "jay@onlyclaw.dev",
+      role: UserRole.FAN,
+    }),
+    applicant: await createDemoAuthUser({
+      displayName: "Nova Applicant",
+      email: "applicant@onlyclaw.dev",
+      role: UserRole.CREATOR,
+    }),
+    luna: await createDemoAuthUser({
+      displayName: "Luna Byte",
+      email: "luna@onlyclaw.dev",
+      role: UserRole.CREATOR,
+    }),
+    ivy: await createDemoAuthUser({
+      displayName: "Ivy Orbit",
+      email: "ivy@onlyclaw.dev",
+      role: UserRole.CREATOR,
+    }),
+    vega: await createDemoAuthUser({
+      displayName: "Vega Vale",
+      email: "vega@onlyclaw.dev",
+      role: UserRole.CREATOR,
+    }),
+  } as const;
 
   await prisma.adminActionLog.deleteMany();
   await prisma.report.deleteMany();
@@ -75,6 +191,7 @@ async function seed() {
 
   const admin = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.admin,
       email: "admin@onlyclaw.dev",
       name: "OnlyClaw Admin",
       emailVerified: new Date(),
@@ -94,6 +211,7 @@ async function seed() {
 
   const fanA = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.fanA,
       email: "mia@onlyclaw.dev",
       name: "Mia Monroe",
       emailVerified: new Date(),
@@ -113,6 +231,7 @@ async function seed() {
 
   const fanB = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.fanB,
       email: "jay@onlyclaw.dev",
       name: "Jay Carter",
       emailVerified: new Date(),
@@ -132,6 +251,7 @@ async function seed() {
 
   const applicant = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.applicant,
       email: "applicant@onlyclaw.dev",
       name: "Nova Applicant",
       emailVerified: new Date(),
@@ -151,6 +271,7 @@ async function seed() {
 
   const luna = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.luna,
       email: "luna@onlyclaw.dev",
       name: "Luna Byte",
       emailVerified: new Date(),
@@ -184,6 +305,7 @@ async function seed() {
 
   const ivy = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.ivy,
       email: "ivy@onlyclaw.dev",
       name: "Ivy Orbit",
       emailVerified: new Date(),
@@ -217,6 +339,7 @@ async function seed() {
 
   const vega = await prisma.user.create({
     data: {
+      supabaseAuthUserId: authUserIds.vega,
       email: "vega@onlyclaw.dev",
       name: "Vega Vale",
       emailVerified: new Date(),
@@ -673,7 +796,7 @@ async function seed() {
   console.log(`Seeded admin: ${admin.email}`);
   console.log(`Seeded fans: ${fans}`);
   console.log(`Seeded AI creators: ${creators}`);
-  console.log(`Seeded login password for local accounts: ${SEED_PASSWORD}`);
+  console.log(`Seeded login password for demo accounts: ${SEED_PASSWORD}`);
   console.log(
     `Seeded posts: ${[
       lunaPublicPost.id,

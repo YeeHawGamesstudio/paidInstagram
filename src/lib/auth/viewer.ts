@@ -3,19 +3,12 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
-import { auth } from "@/auth";
-import { CreatorState, type Prisma, type UserRole } from "@/generated/prisma/client";
+import { CreatorState, type UserRole } from "@/generated/prisma/client";
 import { canAccessSection, type AppSection } from "@/lib/auth/access";
-import { prisma } from "@/lib/prisma/client";
+import { findOrLinkUserBySupabaseIdentity, type AppViewer } from "@/lib/auth/user-identity";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const viewerInclude = {
-  creatorProfile: true,
-  profile: true,
-} satisfies Prisma.UserInclude;
-
-export type Viewer = Prisma.UserGetPayload<{
-  include: typeof viewerInclude;
-}>;
+export type Viewer = AppViewer;
 
 export class AccessDeniedError extends Error {
   constructor(message = "You do not have access to this area.") {
@@ -44,19 +37,16 @@ function getSectionDeniedMessage(section: AppSection) {
 }
 
 export const getOptionalViewer = cache(async (): Promise<Viewer | null> => {
-  const session = await auth();
-  const viewerId = session?.user?.id;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!viewerId) {
+  if (!user) {
     return null;
   }
 
-  const viewer = await prisma.user.findUnique({
-    where: {
-      id: viewerId,
-    },
-    include: viewerInclude,
-  });
+  const viewer = await findOrLinkUserBySupabaseIdentity(user);
 
   return viewer?.isActive ? viewer : null;
 });

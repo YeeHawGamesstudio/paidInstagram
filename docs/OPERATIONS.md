@@ -77,7 +77,7 @@ Backup and restore are infrastructure responsibilities, but the application assu
 Before calling the system production-ready, confirm:
 
 1. `APP_ENV=production` and `NODE_ENV=production`
-2. `DATABASE_URL`, `AUTH_SECRET`, and `MEDIA_SIGNING_SECRET` are set
+2. `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `MEDIA_SIGNING_SECRET` are set
 3. demo auth and demo data fallback are disabled
 4. `ALLOWED_MEDIA_HOSTS` is set for real media origins
 5. billing is either intentionally unavailable or backed by a real provider

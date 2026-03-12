@@ -6,14 +6,12 @@ import { userRoles } from "@/lib/auth/roles";
 
 const DEVELOPMENT_WEBHOOK_SECRET = "dev-onlyclaw-webhook-secret";
 const DEVELOPMENT_MEDIA_SIGNING_SECRET = "dev-onlyclaw-media-signing-secret";
-const DEVELOPMENT_AUTH_SECRET = "dev-onlyclaw-auth-secret";
 
 const rawEnvSchema = z.object({
   APP_ENV: z.enum(["development", "staging", "production"]).optional(),
   ALLOWED_MEDIA_HOSTS: z.string().optional(),
   ALLOW_DEMO_AUTH: z.string().optional(),
   ALLOW_DEMO_DATA_FALLBACK: z.string().optional(),
-  AUTH_SECRET: z.string().min(16).optional(),
   BILLING_PROVIDER: z.string().min(1).optional(),
   BILLING_PROVIDER_WEBHOOK_SECRET: z.string().min(1).optional(),
   BILLING_RECONCILIATION_BATCH_SIZE: z.string().optional(),
@@ -23,7 +21,10 @@ const rawEnvSchema = z.object({
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
   MEDIA_SIGNING_SECRET: z.string().min(16).optional(),
   MOCK_FAN_EMAIL: z.string().email().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required."),
+  NEXT_PUBLIC_SUPABASE_URL: z.url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL."),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required."),
   WEBHOOK_SIGNATURE_TOLERANCE_SECONDS: z.string().optional(),
 });
 
@@ -92,8 +93,6 @@ const billingProviderWebhookSecret =
 const mediaSigningSecret =
   parsedEnv.MEDIA_SIGNING_SECRET ??
   (isDevelopmentAppEnv ? DEVELOPMENT_MEDIA_SIGNING_SECRET : undefined);
-const authSecret =
-  parsedEnv.AUTH_SECRET ?? (isDevelopmentAppEnv ? DEVELOPMENT_AUTH_SECRET : undefined);
 const webhookSignatureToleranceSeconds = parseInteger(
   parsedEnv.WEBHOOK_SIGNATURE_TOLERANCE_SECONDS,
   300,
@@ -131,10 +130,6 @@ if (!mediaSigningSecret) {
   throw new Error("MEDIA_SIGNING_SECRET is required to issue protected media URLs.");
 }
 
-if (!authSecret) {
-  throw new Error("AUTH_SECRET is required to issue authenticated sessions.");
-}
-
 if (!isDevelopmentAppEnv && billingProviderWebhookSecret === DEVELOPMENT_WEBHOOK_SECRET) {
   throw new Error("BILLING_PROVIDER_WEBHOOK_SECRET must be unique outside local development.");
 }
@@ -143,16 +138,11 @@ if (!isDevelopmentAppEnv && mediaSigningSecret === DEVELOPMENT_MEDIA_SIGNING_SEC
   throw new Error("MEDIA_SIGNING_SECRET must be unique outside local development.");
 }
 
-if (!isDevelopmentAppEnv && authSecret === DEVELOPMENT_AUTH_SECRET) {
-  throw new Error("AUTH_SECRET must be unique outside local development.");
-}
-
 export const env = {
   appEnv,
   allowedMediaHosts: parseStringList(parsedEnv.ALLOWED_MEDIA_HOSTS),
   allowDemoAuth,
   allowDemoDataFallback,
-  authSecret,
   billingProvider,
   billingProviderWebhookSecret,
   billingReconciliationBatchSize: parseInteger(parsedEnv.BILLING_RECONCILIATION_BATCH_SIZE, 25),
@@ -163,6 +153,9 @@ export const env = {
   isProduction,
   logLevel,
   mediaSigningSecret,
+  supabaseAnonKey: parsedEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  supabaseServiceRoleKey: parsedEnv.SUPABASE_SERVICE_ROLE_KEY,
+  supabaseUrl: parsedEnv.NEXT_PUBLIC_SUPABASE_URL,
   nodeEnv: parsedEnv.NODE_ENV,
   webhookSignatureToleranceSeconds,
 } as const;

@@ -120,6 +120,7 @@ enum CreatorApplicationStatus {
 
 model User {
   id                          String                @id @default(cuid())
+  supabaseAuthUserId          String?               @unique
   email                       String                @unique
   name                        String?
   image                       String?

@@ -92,7 +92,7 @@ Recommended values:
 
 ## Authentication
 
-### `AUTH_SECRET`
+### `NEXT_PUBLIC_SUPABASE_URL`
 
 Required:
 
@@ -100,14 +100,44 @@ Required:
 
 Purpose:
 
-- signs and verifies Auth.js session state
+- points the app at the correct Supabase project
 
 Operational notes:
 
 - required in every environment
-- use a long random secret
-- do not reuse between staging and production
-- Vercel builds and runtime will fail if this is missing
+- must match the project that owns both Supabase Auth and the Postgres instance used by Prisma
+
+### `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Required:
+
+- yes
+
+Purpose:
+
+- allows the app to perform browser and request-scoped Supabase Auth operations
+
+Operational notes:
+
+- required in every environment
+- safe to expose to the browser
+- still must be scoped to the correct Supabase project and environment
+
+### `SUPABASE_SERVICE_ROLE_KEY`
+
+Required:
+
+- yes
+
+Purpose:
+
+- allows trusted server-side workflows such as provisioning auth users during signup
+
+Operational notes:
+
+- required in every environment
+- server-only secret, never expose it to the browser
+- use a separate value per environment
 
 ## Demo And Local Development Controls
 
@@ -284,7 +314,10 @@ Default:
 APP_ENV="development"
 NODE_ENV="development"
 LOG_LEVEL="debug"
-AUTH_SECRET="replace-with-a-local-auth-secret"
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?schema=public"
+NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="replace-with-your-local-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="replace-with-your-local-service-role-key"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="true"
 BILLING_PROVIDER="mock"
@@ -296,7 +329,10 @@ BILLING_PROVIDER="mock"
 APP_ENV="staging"
 NODE_ENV="production"
 LOG_LEVEL="info"
-AUTH_SECRET="replace-with-staging-auth-secret"
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?schema=public"
+NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="replace-with-staging-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="replace-with-staging-service-role-key"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="false"
 MEDIA_SIGNING_SECRET="replace-with-staging-secret"
@@ -308,7 +344,10 @@ MEDIA_SIGNING_SECRET="replace-with-staging-secret"
 APP_ENV="production"
 NODE_ENV="production"
 LOG_LEVEL="info"
-AUTH_SECRET="replace-with-production-auth-secret"
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?schema=public"
+NEXT_PUBLIC_SUPABASE_URL="https://[YOUR-PROJECT-REF].supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="replace-with-production-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="replace-with-production-service-role-key"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="false"
 MEDIA_SIGNING_SECRET="replace-with-production-secret"

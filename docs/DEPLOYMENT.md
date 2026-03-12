@@ -7,7 +7,8 @@ The app is a `Next.js` App Router application that runs with `next build` and `n
 ## Deployment Model
 
 - application runtime: Next.js server
-- data store: PostgreSQL
+- data store: Supabase Postgres accessed through Prisma
+- auth provider: Supabase Auth
 - app health surface: `GET /api/health`
 - app logs: structured JSON to stdout and stderr
 - protected route groups: `fan`, `creator`, and `admin` are server-rendered on demand
@@ -44,7 +45,7 @@ Before deploying, confirm:
 
 1. required environment variables are present
 2. `DATABASE_URL` is set in the target environment before the build starts
-3. `AUTH_SECRET` is set
+3. `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are set
 4. `MEDIA_SIGNING_SECRET` is set
 5. staging and production do not enable demo auth
 6. staging and production do not enable demo data fallback
@@ -95,6 +96,7 @@ If a database restore is ever required, ensure media storage and database state 
 The app is more deployable than before, but production still requires external systems:
 
 - managed PostgreSQL
+- Supabase Auth configuration and redirect URL allowlists
 - secret management
 - an approval workflow for creator applications
 - centralized log retention
