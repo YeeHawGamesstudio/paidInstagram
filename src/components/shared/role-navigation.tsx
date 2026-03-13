@@ -118,8 +118,8 @@ export function RoleNavigation({
         </nav>
       </div>
 
-      <div className={cn("fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-background/92 px-3 py-3 backdrop-blur-xl md:hidden", mobileWrapperClassName)}>
-        <nav className={cn("mx-auto flex max-w-7xl gap-2 overflow-x-auto pb-1", mobileNavClassName)}>
+      <div className={cn("fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-background/94 px-2 py-2 backdrop-blur-xl md:hidden", mobileWrapperClassName)}>
+        <nav className={cn("mx-auto flex max-w-7xl gap-1.5 overflow-x-auto pb-1", mobileNavClassName)}>
           {items.map((item) => {
             const active = isItemActive(pathname, item.href, item.matchPrefix, rootHref);
             const Icon = roleNavigationIcons[item.icon];
@@ -129,12 +129,12 @@ export function RoleNavigation({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium",
+                  "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-medium",
                   active ? mobileActiveClassName : mobileInactiveClassName,
                   mobileItemClassName,
                 )}
               >
-                <Icon className={cn("size-3.5", mobileIconClassName)} />
+                <Icon className={cn("size-3", mobileIconClassName)} />
                 {item.label}
               </Link>
             );

@@ -33,6 +33,16 @@ function revalidatePublicModerationPaths(creatorSlug?: string) {
   }
 }
 
+function requireModeratorNote(formData: FormData) {
+  const notes = formData.get("notes")?.toString().trim();
+
+  if (!notes) {
+    throw new Error("Add a moderator note before saving.");
+  }
+
+  return notes;
+}
+
 export async function submitModerationReportAction(formData: FormData) {
   const target = normalizeReportTargetType(formData.get("targetType")?.toString());
   const returnUrl = buildReportReturnUrl({
@@ -109,10 +119,12 @@ export async function updateModerationReportStatusAction(formData: FormData) {
     throw new Error("Invalid report moderation input.");
   }
 
+  const notes = requireModeratorNote(formData);
+
   const result = await updateModerationReportStatus({
     reportId,
     status,
-    notes: formData.get("notes")?.toString(),
+    notes,
   });
 
   revalidateAdminModerationPaths();
@@ -143,10 +155,12 @@ export async function updateCreatorModerationStateAction(formData: FormData) {
     throw new Error("Invalid creator moderation input.");
   }
 
+  const notes = requireModeratorNote(formData);
+
   const result = await updateCreatorModerationState({
     creatorProfileId,
     action,
-    notes: formData.get("notes")?.toString(),
+    notes,
     reportId: formData.get("reportId")?.toString() || undefined,
   });
 
@@ -162,10 +176,12 @@ export async function updateUserModerationStateAction(formData: FormData) {
     throw new Error("Invalid user moderation input.");
   }
 
+  const notes = requireModeratorNote(formData);
+
   await updateUserModerationState({
     userId,
     action,
-    notes: formData.get("notes")?.toString(),
+    notes,
     reportId: formData.get("reportId")?.toString() || undefined,
   });
 

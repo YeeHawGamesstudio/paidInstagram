@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, ArrowRight, BadgeCheck, ClipboardList, ScrollText, ShieldAlert, Users } from "lucide-react";
+import { AlertTriangle, ArrowRight, BadgeCheck, ClipboardList, ScrollText, ShieldAlert, Users } from "lucide-react";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { listRecentAdminActions } from "@/lib/admin/audit";
 import {
+  adminUsers,
   adminCreators,
   adminReports,
   adminReviewQueue,
@@ -14,7 +15,19 @@ import {
   getReportStatusLabel,
 } from "@/lib/admin/demo-data";
 import { getOperationalReadinessSnapshot } from "@/lib/operations/readiness";
-import { getAdminCreatorStateTone, getAdminReportStatusTone } from "@/lib/admin/presentation";
+import {
+  getAdminAuditCategoryLabel,
+  getAdminAuditCategoryTone,
+  getAdminCreatorApprovalBadgeLabel,
+  getAdminCreatorApprovalTone,
+  getAdminCreatorVerificationBadgeLabel,
+  getAdminCreatorVerificationTone,
+  getAdminReportSeverityLabel,
+  getAdminReportSeverityTone,
+  getAdminReportStatusTone,
+  getAdminUserRiskLabel,
+  getAdminUserRiskTone,
+} from "@/lib/admin/presentation";
 
 const moderationControlStates = [
   {
@@ -40,30 +53,62 @@ const moderationControlStates = [
 ] as const;
 
 export default async function AdminPage() {
-  const approvalQueue = adminCreators.filter((creator) => creator.state !== "APPROVED").slice(0, 3);
-  const priorityReports = adminReports.slice(0, 3);
-  const recentReviews = adminReviewQueue.slice(0, 3);
+  const approvalQueue = adminCreators.filter((creator) => creator.state !== "APPROVED");
+  const priorityReports = adminReports
+    .filter((report) => report.status === "OPEN" || report.severity === "critical")
+    .slice(0, 3);
+  const recentReviews = adminReviewQueue
+    .filter((item) => item.status === "OPEN" || item.status === "REVIEWED")
+    .slice(0, 3);
+  const riskyAccounts = adminUsers.filter((user) => user.riskState !== "normal").slice(0, 3);
   const recentAdminActions = await listRecentAdminActions(4);
   const operationalReadiness = await getOperationalReadinessSnapshot();
+  const readinessIssues = operationalReadiness.checks.filter((check) => check.status !== "pass");
   const readinessTone =
-    operationalReadiness.status === "fail"
-      ? "bg-destructive/10 text-destructive"
-      : operationalReadiness.status === "warn"
-        ? "bg-amber-500/10 text-amber-300"
-        : "bg-emerald-500/10 text-emerald-300";
+    operationalReadiness.status === "fail" ? "danger" : operationalReadiness.status === "warn" ? "warning" : "success";
   const readinessLabel =
     operationalReadiness.status === "fail"
       ? "Action required"
       : operationalReadiness.status === "warn"
         ? "Needs review"
         : "Healthy";
+  const priorityCards = [
+    {
+      label: "Open reports",
+      value: String(adminReports.filter((report) => report.status === "OPEN").length),
+      detail: priorityReports[0]?.actionState ?? "No active report escalations.",
+      href: "/admin/reports",
+      cta: "Review reports",
+    },
+    {
+      label: "Creator decisions",
+      value: String(approvalQueue.length),
+      detail: approvalQueue[0]?.actionState ?? "No creators waiting on a decision.",
+      href: "/admin/creators",
+      cta: "Review creators",
+    },
+    {
+      label: "Risk accounts",
+      value: String(riskyAccounts.length),
+      detail: riskyAccounts[0]?.actionState ?? "No accounts need attention.",
+      href: "/admin/users",
+      cta: "Open users",
+    },
+    {
+      label: "Readiness issues",
+      value: String(readinessIssues.length),
+      detail: readinessIssues[0]?.detail ?? "All readiness checks are passing.",
+      href: "/admin",
+      cta: "View checks",
+    },
+  ] as const;
 
   return (
     <div className="grid gap-6">
       <AdminPageHeader
         eyebrow="Admin dashboard"
         title="Operational dashboard"
-        description="A single admin surface for creator approvals, moderation intake, user oversight, and content review queues."
+        description="Scan readiness, queues, and recent admin actions."
         actions={
           <div className="flex flex-wrap gap-3">
             <Button asChild>
@@ -76,77 +121,57 @@ export default async function AdminPage() {
         }
       />
 
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)]">
-        <Card className="border-white/10 bg-white/[0.04] p-5">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">
-                Operations
-              </p>
-              <h2 className="mt-2 font-display text-3xl">Readiness status</h2>
-            </div>
-            <Activity className="size-5 text-[var(--color-admin)]" />
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${readinessTone}`}>
-              {readinessLabel}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {operationalReadiness.summary.pass} pass · {operationalReadiness.summary.warn} warn · {operationalReadiness.summary.fail} fail
-            </span>
-          </div>
-
-          <div className="mt-5 grid gap-3">
-            {operationalReadiness.checks.map((check) => (
-              <div key={check.id} className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground">{check.label}</p>
-                  <span
-                    className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                      check.status === "fail"
-                        ? "bg-destructive/10 text-destructive"
-                        : check.status === "warn"
-                          ? "bg-amber-500/10 text-amber-300"
-                          : "bg-emerald-500/10 text-emerald-300"
-                    }`}
-                  >
-                    {check.status}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{check.detail}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="border-white/10 bg-white/[0.04] p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Support guidance</p>
-          <h2 className="mt-2 font-display text-3xl">When something breaks</h2>
-          <div className="mt-5 grid gap-3">
-            <div className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Check runtime readiness first</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Use <span className="font-mono text-foreground">/api/health</span> to confirm database connectivity and environment-level warnings before escalating.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Use request IDs during triage</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                API responses now include a request identifier so logs can be correlated across support tickets, webhook failures, and media delivery issues.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Review the operations runbook</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Operational assumptions, backup expectations, and staging versus production guidance are documented in <span className="font-mono text-foreground">docs/operations-readiness.md</span>.
-              </p>
-            </div>
-          </div>
-        </Card>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {priorityCards.map((item) => (
+          <Card key={item.label} className="border-white/12 bg-white/[0.05] p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-admin)]">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-foreground">{item.value}</p>
+            <p className="mt-2 min-h-12 text-sm leading-5 text-foreground/72">{item.detail}</p>
+            <Button asChild size="sm" variant="ghost" className="mt-4 px-0 text-foreground hover:bg-transparent">
+              <Link href={item.href}>{item.cta}</Link>
+            </Button>
+          </Card>
+        ))}
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)]">
+        <Card className="border-white/12 bg-white/[0.05] p-5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Reports</p>
+              <h2 className="mt-2 font-display text-3xl">Urgent moderation queue</h2>
+            </div>
+            <ShieldAlert className="size-5 text-[var(--color-admin)]" />
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {priorityReports.length ? (
+              priorityReports.map((report) => (
+                <div key={report.id} className="rounded-[1.5rem] border border-white/12 bg-black/25 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge tone={getAdminReportStatusTone(report.status)}>
+                      {getReportStatusLabel(report.status)}
+                    </StatusBadge>
+                    <StatusBadge tone={getAdminReportSeverityTone(report.severity)}>
+                      {getAdminReportSeverityLabel(report.severity)}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-3 font-semibold">{report.targetLabel}</p>
+                  <p className="mt-2 text-sm leading-6 text-foreground/72">{report.reason}</p>
+                  <div className="mt-4 flex items-center justify-between gap-3 text-sm text-foreground/78">
+                    <span>{report.actionState}</span>
+                    <span>{report.openedAt}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[1.5rem] border border-dashed border-white/15 bg-black/20 px-4 py-10 text-center text-sm text-muted-foreground">
+                No urgent reports are waiting right now.
+              </div>
+            )}
+          </div>
+        </Card>
+
         <Card className="border-white/10 bg-[linear-gradient(180deg,_rgba(18,18,22,0.98),_rgba(11,11,14,0.96))] p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -159,20 +184,25 @@ export default async function AdminPage() {
           </div>
 
           <div className="mt-5 grid gap-3">
-            {approvalQueue.map((creator) => (
-              <div key={creator.id} className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+            {approvalQueue.slice(0, 3).map((creator) => (
+              <div key={creator.id} className="rounded-[1.5rem] border border-white/12 bg-black/25 p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-lg font-semibold">{creator.displayName}</p>
-                      <StatusBadge tone={getAdminCreatorStateTone(creator.state)}>
-                        {getCreatorStateLabel(creator.state)}
+                      <StatusBadge tone={getAdminCreatorApprovalTone(creator.approvalStatus)}>
+                        {getAdminCreatorApprovalBadgeLabel(creator.approvalStatus)}
                       </StatusBadge>
+                      {creator.verificationStatus !== "VERIFIED" ? (
+                        <StatusBadge tone={getAdminCreatorVerificationTone(creator.verificationStatus)}>
+                          {getAdminCreatorVerificationBadgeLabel(creator.verificationStatus)}
+                        </StatusBadge>
+                      ) : null}
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-foreground/68">
                       {creator.handle} · {creator.category} · {creator.pricingLabel}
                     </p>
-                    <p className="mt-3 text-sm text-foreground/80">{creator.actionState}</p>
+                    <p className="mt-3 text-sm leading-6 text-foreground/76">{creator.actionState}</p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -189,74 +219,132 @@ export default async function AdminPage() {
             ))}
           </div>
         </Card>
+      </section>
 
-        <Card className="border-white/10 bg-white/[0.04] p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Control states</p>
-          <h2 className="mt-2 font-display text-3xl">Moderation systems</h2>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.9fr)]">
+        <Card className="border-white/12 bg-white/[0.05] p-5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">
+                Operations
+              </p>
+              <h2 className="mt-2 font-display text-3xl">Readiness focus</h2>
+            </div>
+            <AlertTriangle className="size-5 text-[var(--color-admin)]" />
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <StatusBadge tone={readinessTone}>
+              {readinessLabel}
+            </StatusBadge>
+            <span className="text-sm text-muted-foreground">
+              {operationalReadiness.summary.pass} pass · {operationalReadiness.summary.warn} warn · {operationalReadiness.summary.fail} fail
+            </span>
+          </div>
+
           <div className="mt-5 grid gap-3">
-            {moderationControlStates.map((item) => (
-              <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground">{item.label}</p>
-                  <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                    {item.state}
-                  </span>
+            {readinessIssues.length ? (
+              readinessIssues.map((check) => (
+                <div key={check.id} className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-foreground">{check.label}</p>
+                    <StatusBadge tone={check.status === "fail" ? "danger" : "warning"}>
+                      {check.status}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-foreground/72">{check.detail}</p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
+              ))
+            ) : (
+              <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-5">
+                <p className="text-sm font-medium text-foreground">No active readiness issues</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  All current checks are passing in this environment.
+                </p>
               </div>
-            ))}
+            )}
+          </div>
+        </Card>
+
+        <Card className="border-white/12 bg-white/[0.05] p-5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Accounts</p>
+              <h2 className="mt-2 font-display text-3xl">Risk watchlist</h2>
+            </div>
+            <Users className="size-5 text-[var(--color-admin)]" />
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {riskyAccounts.length ? (
+              riskyAccounts.map((user) => (
+                <div key={user.id} className="rounded-[1.5rem] border border-white/12 bg-black/25 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-foreground">{user.displayName}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{user.handle}</p>
+                    </div>
+                    <StatusBadge tone={getAdminUserRiskTone(user.riskState)}>
+                      {getAdminUserRiskLabel(user.riskState)}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-foreground/76">{user.actionState}</p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[1.5rem] border border-dashed border-white/15 bg-black/20 px-4 py-10 text-center text-sm text-muted-foreground">
+                No risky accounts are queued right now.
+              </div>
+            )}
           </div>
         </Card>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-white/10 bg-white/[0.04] p-5">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Reports</p>
-              <h2 className="mt-2 font-display text-3xl">Priority moderation queue</h2>
-            </div>
-            <ShieldAlert className="size-5 text-[var(--color-admin)]" />
-          </div>
-
+        <Card className="border-white/12 bg-white/[0.05] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Control states</p>
+          <h2 className="mt-2 font-display text-3xl">Moderation systems</h2>
           <div className="mt-5 grid gap-3">
-            {priorityReports.map((report) => (
-              <div key={report.id} className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge tone={getAdminReportStatusTone(report.status)}>
-                    {getReportStatusLabel(report.status)}
+            {moderationControlStates.map((item) => (
+              <div key={item.label} className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium text-foreground">{item.label}</p>
+                  <StatusBadge
+                    tone={
+                      item.state === "Healthy" || item.state === "Active"
+                        ? "success"
+                        : item.state === "Pending"
+                          ? "warning"
+                          : "info"
+                    }
+                  >
+                    {item.state}
                   </StatusBadge>
-                  <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{report.severity} severity</span>
                 </div>
-                <p className="mt-3 font-semibold">{report.targetLabel}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{report.reason}</p>
-                <div className="mt-4 flex items-center justify-between gap-3 text-sm text-foreground/80">
-                  <span>{report.actionState}</span>
-                  <span>{report.openedAt}</span>
-                </div>
+                <p className="mt-2 text-sm leading-6 text-foreground/72">{item.detail}</p>
               </div>
             ))}
           </div>
         </Card>
 
-        <Card className="border-white/10 bg-white/[0.04] p-5">
+        <Card className="border-white/12 bg-white/[0.05] p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Content review</p>
-              <h2 className="mt-2 font-display text-3xl">Pending queue</h2>
+              <h2 className="mt-2 font-display text-3xl">Review queue</h2>
             </div>
             <ClipboardList className="size-5 text-[var(--color-admin)]" />
           </div>
 
           <div className="mt-5 grid gap-3">
             {recentReviews.map((item) => (
-              <div key={item.id} className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+              <div key={item.id} className="rounded-[1.5rem] border border-white/12 bg-black/25 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-semibold text-foreground">{item.creatorLabel}</p>
                   <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.queue}</span>
                 </div>
-                <p className="mt-2 text-sm text-foreground/80">{item.summary}</p>
-                <p className="mt-3 text-sm text-muted-foreground">{item.actionState}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground/76">{item.summary}</p>
+                <p className="mt-3 text-sm leading-6 text-foreground/68">{item.actionState}</p>
               </div>
             ))}
           </div>
@@ -264,7 +352,32 @@ export default async function AdminPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <Card className="border-white/10 bg-white/[0.04] p-5">
+        <Card className="border-white/12 bg-white/[0.05] p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Support guidance</p>
+          <h2 className="mt-2 font-display text-3xl">Runbook shortcuts</h2>
+          <div className="mt-5 grid gap-3">
+            <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
+              <p className="text-sm font-medium text-foreground">Check health first</p>
+              <p className="mt-2 text-sm leading-6 text-foreground/72">
+                Start with <span className="font-mono text-foreground">/api/health</span> before escalating.
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
+              <p className="text-sm font-medium text-foreground">Use request IDs</p>
+              <p className="mt-2 text-sm leading-6 text-foreground/72">
+                Match tickets, logs, and webhook failures by request ID.
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
+              <p className="text-sm font-medium text-foreground">Check the runbook</p>
+              <p className="mt-2 text-sm leading-6 text-foreground/72">
+                Operational guidance lives in <span className="font-mono text-foreground">docs/operations-readiness.md</span>.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="border-white/12 bg-white/[0.05] p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Recent actions</p>
@@ -275,47 +388,52 @@ export default async function AdminPage() {
 
           <div className="mt-5 grid gap-3">
             {recentAdminActions.map((entry) => (
-              <div key={entry.id} className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                <p className="text-sm font-medium text-foreground">
+              <div key={entry.id} className="rounded-[1.5rem] border border-white/12 bg-black/25 p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge tone={getAdminAuditCategoryTone(entry.category)}>
+                    {getAdminAuditCategoryLabel(entry.category)}
+                  </StatusBadge>
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{entry.when}</p>
+                </div>
+                <p className="mt-3 text-sm font-medium text-foreground">
                   {entry.actor} · {entry.action}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">{entry.target}</p>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">{entry.when}</p>
+                <p className="mt-1 text-sm text-foreground/68">{entry.target}</p>
               </div>
             ))}
           </div>
         </Card>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <Link href="/admin/creators" className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-[var(--color-admin)]/30">
+          <Link href="/admin/creators" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <BadgeCheck className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">Manage creators</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Review approval state, suspend risky accounts, and inspect creator-facing action notes.
+            <p className="mt-2 text-sm leading-6 text-foreground/72">
+              Approve, suspend, and review creator notes.
             </p>
           </Link>
 
-          <Link href="/admin/users" className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-[var(--color-admin)]/30">
+          <Link href="/admin/users" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <Users className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">View users</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Check roles, account lifecycle, billing watch states, and placeholder restriction controls.
+            <p className="mt-2 text-sm leading-6 text-foreground/72">
+              Check roles, access, and risk flags.
             </p>
           </Link>
 
-          <Link href="/admin/review" className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-[var(--color-admin)]/30">
+          <Link href="/admin/review" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <ArrowRight className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">Open review queue</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Process queued profile edits, posts, and message templates with structured moderation states.
+            <p className="mt-2 text-sm leading-6 text-foreground/72">
+              Review queued content and message templates.
             </p>
           </Link>
 
-          <Link href="/admin/audit" className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-[var(--color-admin)]/30">
+          <Link href="/admin/audit" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <ScrollText className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">Audit trail</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Inspect recent moderation and compliance events from a dedicated admin log surface.
+            <p className="mt-2 text-sm leading-6 text-foreground/72">
+              See recent moderation and compliance events.
             </p>
           </Link>
         </div>

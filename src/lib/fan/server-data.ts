@@ -376,7 +376,7 @@ export const getFanShellProfile = cache(async (): Promise<FanShellProfile> => {
       throw new Error("The active fan account is missing a profile.");
     }
 
-    const [subscriptions, conversations] = await prisma.$transaction([
+    const [subscriptions, conversations] = await Promise.all([
       prisma.subscription.findMany({
         where: {
           fanId: viewer.id,
@@ -421,7 +421,7 @@ export const getFanFeed = cache(async (): Promise<FanFeedItem[]> => {
   try {
     const viewer = await requireRole("FAN");
 
-    const [subscriptions, creators] = await prisma.$transaction([
+    const [subscriptions, creators] = await Promise.all([
       prisma.subscription.findMany({
         where: {
           fanId: viewer.id,
@@ -525,7 +525,7 @@ export const getFanSubscriptionsPageData = cache(async (): Promise<FanSubscripti
   try {
     const viewer = await requireRole("FAN");
 
-    const [subscriptions, creators, conversations] = await prisma.$transaction([
+    const [subscriptions, creators, conversations] = await Promise.all([
       prisma.subscription.findMany({
         where: {
           fanId: viewer.id,

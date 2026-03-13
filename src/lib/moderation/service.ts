@@ -41,6 +41,7 @@ type RelatedAuditNote = {
   action: string;
   notes: string;
   when: string;
+  createdAt: string;
 };
 
 export type ModerationReportRecord = AdminReportRecord & {
@@ -72,6 +73,9 @@ export type ModerationCreatorRecord = AdminCreatorRecord & {
 export type ModerationUserRecord = AdminUserRecord & {
   userId: string;
   isActive: boolean;
+  openReports: number;
+  lastSeenAt?: string;
+  lastModeratedAt?: string;
   relatedNotes: RelatedAuditNote[];
 };
 
@@ -495,6 +499,7 @@ function mapAuditNotes(
     action: entry.action,
     notes: entry.notes ?? "No notes recorded.",
     when: formatTimeAgo(entry.createdAt),
+    createdAt: entry.createdAt.toISOString(),
   }));
 }
 
@@ -918,6 +923,7 @@ export async function listAdminModerationUsers(): Promise<ModerationUserRecord[]
             ? `Creator account linked to ${user.creatorProfile.slug}`
             : "Account active on platform",
         adultAccessStatus: user.adultAccessStatus,
+        openReports,
         spendLabel:
           user.role === "FAN"
             ? totalSpendCents > 0
@@ -926,6 +932,8 @@ export async function listAdminModerationUsers(): Promise<ModerationUserRecord[]
             : "Creator payouts and cash-out review are separate controls",
         riskState,
         lastSeen: formatTimeAgo(user.updatedAt),
+        lastSeenAt: user.updatedAt.toISOString(),
+        lastModeratedAt: relatedNotes[0]?.createdAt,
         actionState:
           relatedNotes[0]?.notes ??
           (!user.isActive
@@ -941,12 +949,21 @@ export async function listAdminModerationUsers(): Promise<ModerationUserRecord[]
       throw error;
     }
 
-    return demoAdminUsers.map((user) => ({
-      ...user,
-      userId: user.id,
-      isActive: user.riskState !== "restricted",
-      relatedNotes: [],
-    }));
+    return demoAdminUsers.map((user, index) => {
+      const lastSeenAt = new Date(Date.now() - index * 1000 * 60 * 30).toISOString();
+      const lastModeratedAt =
+        user.riskState === "normal" ? undefined : new Date(Date.now() - (index + 1) * 1000 * 60 * 60).toISOString();
+
+      return {
+        ...user,
+        userId: user.id,
+        isActive: user.riskState !== "restricted",
+        openReports: user.riskState === "watch" ? 1 : user.riskState === "restricted" ? 2 : 0,
+        lastSeenAt,
+        lastModeratedAt,
+        relatedNotes: [],
+      } satisfies ModerationUserRecord;
+    });
   }
 }
 

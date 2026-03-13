@@ -29,7 +29,7 @@ export async function FanShell({ children }: FanShellProps) {
                 <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300">
                   Fan access
                 </span>
-                <SignOutButton className="h-8 px-3 text-[11px]" variant="ghost" />
+                <SignOutButton className="h-8 px-3 text-[11px]" variant="destructive" />
               </div>
               <h1 className="mt-4 font-display text-[2.35rem] leading-none sm:text-4xl">Premium fan experience</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">

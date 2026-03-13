@@ -7,12 +7,12 @@ import { signOutAction } from "@/lib/auth/actions";
 
 type SignOutButtonProps = {
   className?: string;
-  variant?: "default" | "outline" | "ghost";
+  variant?: "default" | "outline" | "ghost" | "destructive";
 };
 
 function SignOutButtonInner({
   className,
-  variant = "outline",
+  variant = "destructive",
 }: SignOutButtonProps) {
   const { pending } = useFormStatus();
 

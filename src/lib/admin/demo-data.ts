@@ -73,6 +73,9 @@ export type AdminActionLogEntry = {
   target: string;
   notes: string;
   when: string;
+  hasNotes?: boolean;
+  isLowSignal?: boolean;
+  groupedCount?: number;
 };
 
 export const adminPlatformMetrics: AdminMetric[] = [

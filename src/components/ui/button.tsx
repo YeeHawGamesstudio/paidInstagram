@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -15,6 +13,8 @@ const buttonVariants = cva(
           "border-primary/60 bg-[linear-gradient(180deg,_rgba(221,191,136,1),_rgba(201,169,110,1))] text-primary-foreground shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_16px_32px_rgba(201,169,110,0.2)] hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_20px_40px_rgba(201,169,110,0.28)]",
         secondary:
           "border-white/8 bg-secondary/92 text-secondary-foreground shadow-[0_12px_24px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:bg-secondary",
+        destructive:
+          "border-red-500/55 bg-[linear-gradient(180deg,_rgba(239,68,68,0.92),_rgba(185,28,28,0.96))] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_16px_32px_rgba(127,29,29,0.28)] hover:-translate-y-0.5 hover:border-red-400/70 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_20px_40px_rgba(127,29,29,0.36)]",
         ghost: "text-foreground/82 hover:bg-white/[0.05] hover:text-foreground",
         outline:
           "border-white/12 bg-white/[0.025] text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:-translate-y-0.5 hover:border-primary/45 hover:bg-white/[0.06]",

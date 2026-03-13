@@ -24,8 +24,8 @@ const adminActionInclude = {
   creatorApplication: true,
 } satisfies Prisma.AdminActionLogInclude;
 
-function formatTimeAgo(date: Date) {
-  const diffMs = Date.now() - date.getTime();
+function formatTimeAgo(date: Date, referenceTime: Date) {
+  const diffMs = referenceTime.getTime() - date.getTime();
   const diffMinutes = Math.max(Math.floor(diffMs / (1000 * 60)), 0);
 
   if (diffMinutes < 1) {
@@ -78,9 +78,44 @@ function resolveCategory(entry: Prisma.AdminActionLogGetPayload<{ include: typeo
   return "admin-action";
 }
 
+function normalizeActionLabel(action: string) {
+  if (!action.includes("_")) {
+    return action;
+  }
+
+  return action
+    .replace(/_/g, " ")
+    .trim()
+    .replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function hasMeaningfulNotes(notes: string | null | undefined) {
+  if (typeof notes !== "string") {
+    return false;
+  }
+
+  return notes.trim().length > 0;
+}
+
+function isLowSignalAction(action: string, notes: string | null | undefined) {
+  if (hasMeaningfulNotes(notes)) {
+    return false;
+  }
+
+  return (
+    action === "Marked report reviewed" ||
+    action === "Resolved report" ||
+    action === "Dismissed report" ||
+    action === "Restored user" ||
+    action === "Restored creator" ||
+    action === "Approved creator"
+  );
+}
+
 export const listRecentAdminActions = cache(async (limit = 25): Promise<AdminActionLogEntry[]> => {
   try {
     await requireRole("ADMIN");
+    const referenceTime = new Date();
 
     const entries = await prisma.adminActionLog.findMany({
       include: adminActionInclude,
@@ -90,24 +125,71 @@ export const listRecentAdminActions = cache(async (limit = 25): Promise<AdminAct
       take: limit,
     });
 
-    return entries.map((entry) => ({
-      id: entry.id,
-      actor:
+    const normalizedEntries = entries.map((entry) => {
+      const actor =
         entry.admin.profile?.displayName ??
         entry.admin.profile?.username ??
-        entry.admin.email,
-      category: resolveCategory(entry),
-      action: entry.action,
-      target: resolveTargetLabel(entry),
-      notes: entry.notes ?? "No notes recorded.",
-      when: formatTimeAgo(entry.createdAt),
-    }));
+        entry.admin.email;
+      const category = resolveCategory(entry);
+      const action = normalizeActionLabel(entry.action);
+      const target = resolveTargetLabel(entry);
+      const hasNotes = hasMeaningfulNotes(entry.notes);
+      const isLowSignal = isLowSignalAction(action, entry.notes);
+
+      return {
+        id: entry.id,
+        actor,
+        category,
+        action,
+        target,
+        notes: hasNotes ? entry.notes!.trim() : "No note provided.",
+        when: formatTimeAgo(entry.createdAt, referenceTime),
+        createdAt: entry.createdAt,
+        hasNotes,
+        isLowSignal,
+      };
+    });
+
+    const groupedEntries: Array<AdminActionLogEntry & { createdAt: Date }> = [];
+
+    for (const entry of normalizedEntries) {
+      const previous = groupedEntries[groupedEntries.length - 1];
+
+      if (
+        previous &&
+        previous.isLowSignal &&
+        entry.isLowSignal &&
+        previous.actor === entry.actor &&
+        previous.category === entry.category &&
+        previous.action === entry.action &&
+        previous.target === entry.target &&
+        previous.createdAt.getTime() - entry.createdAt.getTime() <= 1000 * 60 * 60 * 6
+      ) {
+        previous.groupedCount = (previous.groupedCount ?? 1) + 1;
+        previous.when = formatTimeAgo(previous.createdAt, referenceTime);
+        previous.notes = `Repeated ${previous.groupedCount} times without a moderator note.`;
+        continue;
+      }
+
+      groupedEntries.push({
+        ...entry,
+        groupedCount: 1,
+      });
+    }
+
+    return groupedEntries.map(({ createdAt: _createdAt, ...entry }) => entry);
   } catch (error) {
     if (!env.allowDemoDataFallback) {
       throw error;
     }
 
-    return demoAdminActionLog.slice(0, limit);
+    return demoAdminActionLog.slice(0, limit).map((entry) => ({
+      ...entry,
+      action: normalizeActionLabel(entry.action),
+      hasNotes: hasMeaningfulNotes(entry.notes),
+      isLowSignal: isLowSignalAction(entry.action, entry.notes),
+      groupedCount: 1,
+    }));
   }
 });
 

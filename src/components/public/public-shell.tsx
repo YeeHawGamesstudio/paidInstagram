@@ -11,6 +11,9 @@ import { siteConfig } from "@/lib/config/site";
 const publicNavItems = [
   { label: "Discover", href: "/discover" },
   { label: "Creator list", href: "/discover?view=list" },
+] as const;
+
+const publicGuestNavItems = [
   { label: "Login", href: "/login" },
   { label: "Sign up", href: "/signup" },
 ] as const;
@@ -18,6 +21,7 @@ const publicNavItems = [
 export async function PublicShell({ children }: Readonly<{ children: ReactNode }>) {
   const viewer = await getOptionalViewer();
   const accountHref = viewer ? getViewerHomePath(viewer) : "/login";
+  const navItems = viewer ? publicNavItems : [...publicNavItems, ...publicGuestNavItems];
 
   return (
     <div className="min-h-screen">
@@ -50,7 +54,7 @@ export async function PublicShell({ children }: Readonly<{ children: ReactNode }
           </div>
 
           <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] p-1 md:flex">
-            {publicNavItems.map((item) => (
+            {navItems.map((item) => (
               <Button key={item.href} variant="ghost" size="sm" asChild>
                 <Link href={item.href}>{item.label}</Link>
               </Button>
@@ -61,12 +65,12 @@ export async function PublicShell({ children }: Readonly<{ children: ReactNode }
             <Button asChild size="sm" variant={viewer ? "outline" : "default"} className="shrink-0">
               <Link href={accountHref}>{viewer ? "Dashboard" : "Explore creators"}</Link>
             </Button>
-            {viewer ? <SignOutButton className="h-9 px-4 text-xs" variant="ghost" /> : null}
+            {viewer ? <SignOutButton className="h-9 px-4 text-xs" variant="destructive" /> : null}
           </div>
         </div>
 
         <div className="mx-auto flex w-full max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6 md:hidden">
-          {publicNavItems.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}

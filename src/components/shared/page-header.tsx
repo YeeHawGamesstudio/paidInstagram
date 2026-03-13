@@ -32,8 +32,8 @@ export function PageHeader({
       <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", contentClassName)}>
         <div className="max-w-3xl">
           <p className={cn("text-xs font-semibold uppercase tracking-[0.3em]", eyebrowClassName)}>{eyebrow}</p>
-          <h1 className={cn("mt-2 font-display leading-none", titleClassName)}>{title}</h1>
-          <p className={cn("mt-3 text-sm leading-6 text-muted-foreground sm:text-base", descriptionClassName)}>
+          <h1 className={cn("mt-2 font-display leading-[0.95]", titleClassName)}>{title}</h1>
+          <p className={cn("mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]", descriptionClassName)}>
             {description}
           </p>
         </div>

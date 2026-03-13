@@ -41,7 +41,7 @@ export function CreatorShell({ children }: CreatorShellProps) {
                     <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground/70">
                       Mock-safe workspace
                     </span>
-                    <SignOutButton className="h-8 px-3 text-[11px]" variant="ghost" />
+                    <SignOutButton className="h-8 px-3 text-[11px]" variant="destructive" />
                   </div>
 
                   <div className="mt-5 flex items-end gap-4">
