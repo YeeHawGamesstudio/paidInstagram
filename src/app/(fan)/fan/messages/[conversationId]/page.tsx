@@ -23,7 +23,7 @@ export default async function FanConversationPage({ params }: FanConversationPag
       <FanPageHeader
         eyebrow="Conversation"
         title={conversation.creatorName}
-        description="Review thread history, premium unlock states, and message presentation for this creator conversation."
+        description="Catch up on creator replies, unlock paid drops, and review your message history in one thread."
       />
 
       <ConversationScreen conversation={conversation} />

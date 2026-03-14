@@ -7,72 +7,106 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getFanFeedAccessLabel, getFanFeedAccessTone } from "@/lib/fan/presentation";
+import { getFanFeedAccessTone } from "@/lib/fan/presentation";
 import { formatAmount, getFanFeed, getFanShellProfile } from "@/lib/fan/server-data";
+import { cn } from "@/lib/utils";
+
+function getSurfaceImageStyle(imageUrl?: string) {
+  return imageUrl ? { backgroundImage: `url(${imageUrl})` } : undefined;
+}
 
 export default async function FanPage() {
   // The Prisma pg adapter warns when the same client is queried concurrently.
   const fanProfile = await getFanShellProfile();
   const fanFeed = await getFanFeed();
+  const includedCount = fanFeed.filter((item) => item.access === "INCLUDED").length;
+  const lockedCount = fanFeed.length - includedCount;
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-4 sm:gap-5">
       <FanPageHeader
+        compact={false}
         eyebrow="Fan home"
         title={`Welcome back, ${fanProfile.displayName}`}
         description="Your feed blends subscriber-only drops, live creator updates, and message activity in a mobile-first premium layout."
         actions={
-          <Button asChild>
-            <Link href="/fan/messages">Open inbox</Link>
-          </Button>
+          <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+            <Button asChild>
+              <Link href="/fan/messages">Open inbox</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/fan/subscriptions">Manage memberships</Link>
+            </Button>
+          </div>
         }
       />
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <MetricCard
-          label="Memberships"
-          value={fanProfile.membershipCount}
-          detail={fanProfile.nextRenewalLabel}
-          icon={Crown}
-          className="shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-        />
-        <MetricCard
-          label="Unread chat"
-          value={fanProfile.unreadMessages}
-          detail="Paid drops and creator replies waiting in the inbox."
-          icon={MessageSquareText}
-          className="shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-        />
-        <MetricCard
-          label="Monthly spend"
-          value={formatAmount(fanProfile.monthlySpendCents, "usd")}
-          detail="Current active membership total before any paid message unlocks."
-          icon={Sparkles}
-          className="shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-        />
-      </section>
-
       <section className="grid gap-4">
-        <div className="flex items-end justify-between gap-3">
+        <Card className="border-white/10 bg-[radial-gradient(circle_at_top_right,_rgba(201,169,110,0.08),_transparent_16rem),linear-gradient(180deg,_rgba(20,20,24,0.96),_rgba(11,11,14,0.98))] p-4 sm:p-5">
+          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Jump back in</p>
+              <h2 className="mt-2 font-display text-2xl sm:text-3xl">Your next premium updates are ready below</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <StatusBadge tone="success" className="text-xs normal-case tracking-normal">
+                  {includedCount} ready now
+                </StatusBadge>
+                <StatusBadge tone="primary" className="text-xs normal-case tracking-normal">
+                  {lockedCount} locked preview{lockedCount === 1 ? "" : "s"}
+                </StatusBadge>
+                <StatusBadge tone="neutral" className="text-xs normal-case tracking-normal">
+                  {fanProfile.unreadMessages} unread messages
+                </StatusBadge>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:w-52">
+              <Button asChild className="w-full justify-center">
+                <Link href="/fan/messages">Open inbox</Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-center">
+                <Link href="/fan/subscriptions">Manage memberships</Link>
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Live feed</p>
             <h2 className="mt-2 font-display text-3xl">Subscriber content and previews</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Browse what is ready to open now first, then scan any locked previews that still need membership access.
+            </p>
           </div>
-          <Button asChild variant="ghost" className="hidden sm:inline-flex">
-            <Link href="/fan/subscriptions">Manage memberships</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge tone="success" className="text-xs normal-case tracking-normal">
+              Included first
+            </StatusBadge>
+            {lockedCount ? (
+              <StatusBadge tone="primary" className="text-xs normal-case tracking-normal">
+                {lockedCount} still locked
+              </StatusBadge>
+            ) : null}
+          </div>
         </div>
 
         <div className="grid gap-4">
           {fanFeed.length ? (
             fanFeed.map((item) => (
-              <Card key={item.id} className="overflow-hidden border-white/10 bg-[linear-gradient(180deg,_rgba(20,20,24,0.98),_rgba(11,11,14,0.96))]">
+              <Card
+                key={item.id}
+                className={cn(
+                  "overflow-hidden bg-[linear-gradient(180deg,_rgba(20,20,24,0.98),_rgba(11,11,14,0.96))]",
+                  item.access === "INCLUDED" ? "border-emerald-400/18" : "border-white/10",
+                )}
+              >
                 <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_20rem]">
                   <div className="flex flex-col gap-4 p-5 sm:p-6">
                     <div className="flex items-center gap-3">
                       <div
-                        className="size-12 rounded-2xl border border-white/10 bg-cover bg-center shadow-[0_16px_32px_rgba(0,0,0,0.2)]"
-                        style={{ backgroundImage: `url(${item.creatorAvatarUrl})` }}
+                        className="size-12 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(201,169,110,0.24),_rgba(23,23,30,0.94))] bg-cover bg-center shadow-[0_16px_32px_rgba(0,0,0,0.2)]"
+                        style={getSurfaceImageStyle(item.creatorAvatarUrl)}
+                        aria-label={item.creatorName}
                       />
                       <div>
                         <p className="font-semibold text-foreground">{item.creatorName}</p>
@@ -84,27 +118,32 @@ export default async function FanPage() {
 
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge tone={getFanFeedAccessTone(item.access)} className="text-xs">
-                        {getFanFeedAccessLabel(item.access)}
+                        {item.access === "INCLUDED" ? "Included with membership" : "Membership preview"}
                       </StatusBadge>
-                      <span className="text-xs text-muted-foreground">{item.contextLabel}</span>
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-muted-foreground">
+                        {item.contextLabel}
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-muted-foreground">
+                        {item.access === "INCLUDED" ? "Ready in inbox" : "Preview only"}
+                      </span>
                     </div>
 
                     <div>
-                      <h3 className="font-display text-3xl">{item.headline}</h3>
-                      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">{item.caption}</p>
+                      <h3 className="font-display text-[1.85rem] leading-tight sm:text-[2.1rem]">{item.headline}</h3>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{item.caption}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
-                      <Button asChild>
+                    <div className="grid gap-2 sm:flex sm:flex-wrap">
+                      <Button asChild className="w-full justify-center sm:w-auto">
                         <Link href={item.destinationHref}>
-                          {item.access === "INCLUDED" ? "View in messages" : "See memberships"}
+                          {item.access === "INCLUDED" ? "Open included drop" : "Unlock with membership"}
                         </Link>
                       </Button>
                       {item.access === "LOCKED" ? (
-                        <Button asChild variant="outline">
+                        <Button asChild variant="outline" className="w-full justify-center sm:w-auto">
                           <Link href="/fan/subscriptions">
                             <Lock className="size-4" />
-                            Unlock with subscription
+                            Manage memberships
                           </Link>
                         </Button>
                       ) : null}
@@ -115,9 +154,11 @@ export default async function FanPage() {
                     <div
                       className={item.access === "LOCKED" ? "absolute inset-0 scale-[1.03] bg-cover bg-center blur-sm" : "absolute inset-0 bg-cover bg-center"}
                       style={{
-                        backgroundImage: `linear-gradient(180deg, rgba(10,10,12,0.15), rgba(10,10,12,0.6)), url(${item.media.imageUrl ?? item.creatorAvatarUrl})`,
+                        backgroundImage: item.media.imageUrl || item.creatorAvatarUrl
+                          ? `linear-gradient(180deg, rgba(10,10,12,0.15), rgba(10,10,12,0.6)), url(${item.media.imageUrl ?? item.creatorAvatarUrl})`
+                          : "linear-gradient(180deg, rgba(201,169,110,0.2), rgba(10,10,12,0.88))",
                       }}
-                      aria-label={item.media.imageAlt}
+                      aria-label={item.media.imageAlt ?? item.media.label}
                     />
                     {item.access === "LOCKED" ? (
                       <>
@@ -126,10 +167,11 @@ export default async function FanPage() {
                           <div className="w-full rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
                             <div className="flex items-center gap-2 text-primary">
                               <Lock className="size-4" />
-                              <span className="text-xs font-semibold uppercase tracking-[0.2em]">Still locked</span>
+                              <span className="text-xs font-semibold uppercase tracking-[0.2em]">Membership preview</span>
                             </div>
+                            <p className="mt-2 text-sm font-medium text-foreground">{item.media.label}</p>
                             <p className="mt-2 text-sm text-foreground/80">
-                              Subscriber-only content is shown clearly in the feed but gated until access is active.
+                              Subscribe to unlock this creator's full drop and open it from your inbox.
                             </p>
                           </div>
                         </div>
@@ -141,9 +183,58 @@ export default async function FanPage() {
             ))
           ) : (
             <EmptyStateCard>
-              Your feed is empty for now. Once subscriptions are active or creators publish new premium drops, this area will fill in automatically.
+              <div className="grid gap-4">
+                <p>
+                  Your feed is empty for now. Once memberships are active or creators publish new premium drops, this area
+                  will fill in automatically.
+                </p>
+                <div className="grid gap-2 sm:flex sm:flex-wrap">
+                  <Button asChild className="w-full justify-center sm:w-auto">
+                    <Link href="/fan/subscriptions">Browse memberships</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full justify-center sm:w-auto">
+                    <Link href="/fan/messages">Open inbox</Link>
+                  </Button>
+                </div>
+              </div>
             </EmptyStateCard>
           )}
+        </div>
+      </section>
+
+      <section className="grid gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">At a glance</p>
+          <h2 className="mt-2 font-display text-2xl">Membership and inbox snapshot</h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <MetricCard
+            label="Memberships"
+            value={fanProfile.membershipCount}
+            detail={fanProfile.nextRenewalLabel}
+            icon={Crown}
+            className="bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            valueClassName="text-[1.8rem] sm:text-[2rem]"
+            detailClassName="text-xs leading-5 text-foreground/68"
+          />
+          <MetricCard
+            label="Unread messages"
+            value={fanProfile.unreadMessages}
+            detail="Creator replies and paid drops waiting in the inbox."
+            icon={MessageSquareText}
+            className="bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            valueClassName="text-[1.8rem] sm:text-[2rem]"
+            detailClassName="text-xs leading-5 text-foreground/68"
+          />
+          <MetricCard
+            label="Monthly spend"
+            value={formatAmount(fanProfile.monthlySpendCents, "usd")}
+            detail="Current active membership total before paid unlocks."
+            icon={Sparkles}
+            className="bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            valueClassName="text-[1.8rem] sm:text-[2rem]"
+            detailClassName="text-xs leading-5 text-foreground/68"
+          />
         </div>
       </section>
     </div>

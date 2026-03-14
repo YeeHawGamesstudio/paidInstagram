@@ -18,12 +18,14 @@ type SubscriptionCancelButtonProps = {
   subscriptionId: string;
   creatorName: string;
   isCancellationScheduled: boolean;
+  className?: string;
 };
 
 export function SubscriptionCancelButton({
   subscriptionId,
   creatorName,
   isCancellationScheduled,
+  className,
 }: SubscriptionCancelButtonProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(
@@ -42,7 +44,7 @@ export function SubscriptionCancelButton({
   return (
     <form action={formAction} className="grid gap-2">
       <input type="hidden" name="subscriptionId" value={subscriptionId} />
-      <Button type="submit" variant="outline" disabled={cancellationScheduled || isPending}>
+      <Button type="submit" variant="outline" className={className} disabled={cancellationScheduled || isPending}>
         {cancellationScheduled
           ? "Cancellation scheduled"
           : isPending

@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
+
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type EmptyStateCardProps = {
-  children: string;
+  children: ReactNode;
   className?: string;
 };
 

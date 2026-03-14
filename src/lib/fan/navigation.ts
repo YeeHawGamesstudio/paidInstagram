@@ -22,6 +22,12 @@ export const fanNavigation: readonly FanNavItem[] = [
     matchPrefix: "/fan/messages",
   },
   {
+    label: "Billing",
+    href: "/fan/billing",
+    icon: "creditCard",
+    matchPrefix: "/fan/billing",
+  },
+  {
     label: "Account",
     href: "/fan/account",
     icon: "userRound",

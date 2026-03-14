@@ -289,7 +289,7 @@ export const creatorSubscribers: CreatorSubscriber[] = [
 
 export const creatorAudienceSnapshot = [
   { label: "Active subscribers", value: "482" },
-  { label: "VIP spenders", value: "34" },
+  { label: "VIP subscribers", value: "34" },
   { label: "Churn watch", value: "12" },
 ];
 
@@ -319,7 +319,7 @@ export function formatCreatorCurrency(amountCents: number) {
 }
 
 export function getCreatorPostVisibilityLabel(visibility: CreatorPostVisibility) {
-  return visibility === "PUBLIC" ? "Public" : "Subscribers only";
+  return visibility === "PUBLIC" ? "Public teaser" : "Subscriber-only";
 }
 
 export function getCreatorPostStatusLabel(status: CreatorPostStatus) {

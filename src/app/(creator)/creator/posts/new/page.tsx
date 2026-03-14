@@ -9,8 +9,8 @@ export default function CreatorNewPostPage() {
     <div className="grid gap-6">
       <CreatorPageHeader
         eyebrow="New post"
-        title="Compose a premium post"
-        description="Create public teaser content or subscriber-only drops with a clean publishing flow that can be wired to real uploads later."
+        title="Draft a new post"
+        description="Build a public teaser or subscriber-only post, review the preview, and test the form without live publishing."
         actions={
           <Button asChild variant="outline">
             <Link href="/creator/posts">Back to posts</Link>

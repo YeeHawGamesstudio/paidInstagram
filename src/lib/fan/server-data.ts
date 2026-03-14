@@ -389,6 +389,14 @@ export const getFanShellProfile = cache(async (): Promise<FanShellProfile> => {
         where: {
           fanId: viewer.id,
         },
+        include: {
+          messages: {
+            select: {
+              senderId: true,
+              createdAt: true,
+            },
+          },
+        },
         orderBy: {
           lastMessageAt: "desc",
         },
@@ -404,7 +412,16 @@ export const getFanShellProfile = cache(async (): Promise<FanShellProfile> => {
       displayName: viewer.profile.displayName,
       handle: getHandle(viewer.profile.username),
       membershipCount: activeSubscriptions.length,
-      unreadMessages: conversations.filter((conversation) => Boolean(conversation.lastMessageAt)).length,
+      unreadMessages: conversations.reduce(
+        (total, conversation) =>
+          total +
+          conversation.messages.filter(
+            (message) =>
+              message.senderId !== viewer.id &&
+              Date.now() - message.createdAt.getTime() < 1000 * 60 * 60 * 24,
+          ).length,
+        0,
+      ),
       monthlySpendCents: activeSubscriptions.reduce((total, subscription) => total + subscription.priceCents, 0),
       nextRenewalLabel: nextRenewal ? `Next renewal ${formatShortDate(nextRenewal)}` : "No active renewals",
     };

@@ -14,11 +14,11 @@ export function getFanConversationTone(tone: "ONLINE" | "UNREAD" | "QUIET"): Bad
 
 export function getFanConversationToneLabel(tone: "ONLINE" | "UNREAD" | "QUIET") {
   if (tone === "ONLINE") {
-    return "Active";
+    return "Recent";
   }
 
   if (tone === "UNREAD") {
-    return "Unread";
+    return "Paid drop";
   }
 
   return "Quiet";
