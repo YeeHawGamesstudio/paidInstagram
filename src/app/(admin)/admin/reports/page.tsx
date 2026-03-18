@@ -261,7 +261,7 @@ export default async function AdminReportsPage({ searchParams }: AdminReportsPag
                                   Mark reviewed
                                 </Button>
                                 <Button className="w-full" size="sm" name="status" value="RESOLVED">
-                                  Resolve case
+                                  Resolve and close case
                                 </Button>
                                 <Button className="w-full" size="sm" variant="ghost" name="status" value="DISMISSED">
                                   Dismiss report
@@ -271,22 +271,32 @@ export default async function AdminReportsPage({ searchParams }: AdminReportsPag
                           </form>
 
                           {report.canTakeDownPost ? (
-                            <form action={takeDownReportedPostAction} className="rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
+                            <form action={takeDownReportedPostAction} className="grid gap-3 rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
                               <input type="hidden" name="reportId" value={report.id} />
-                              <input type="hidden" name="notes" value="Post removed from visibility from the moderation report queue." />
-                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Additional action</p>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Take down reported post</p>
+                              <Textarea
+                                required
+                                name="notes"
+                                className="min-h-20"
+                                placeholder="Explain why the reported post is being removed."
+                              />
                               <Button size="sm" variant="outline" className="mt-3 w-full">
-                                Takedown content
+                                Remove post from public visibility
                               </Button>
                             </form>
                           ) : null}
 
                           {report.canSuspendCreator && report.targetCreatorProfileId ? (
-                            <form action={updateCreatorModerationStateAction} className="rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
+                            <form action={updateCreatorModerationStateAction} className="grid gap-3 rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
                               <input type="hidden" name="creatorProfileId" value={report.targetCreatorProfileId} />
                               <input type="hidden" name="reportId" value={report.id} />
-                              <input type="hidden" name="notes" value="Creator suspended from the report queue pending policy review." />
-                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Additional action</p>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Suspend creator account</p>
+                              <Textarea
+                                required
+                                name="notes"
+                                className="min-h-20"
+                                placeholder="Explain why this creator account is being suspended."
+                              />
                               <Button size="sm" variant="outline" className="mt-3 w-full" name="action" value="SUSPEND">
                                 Suspend creator
                               </Button>
@@ -294,11 +304,16 @@ export default async function AdminReportsPage({ searchParams }: AdminReportsPag
                           ) : null}
 
                           {report.canSuspendUser && report.targetUserId ? (
-                            <form action={updateUserModerationStateAction} className="rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
+                            <form action={updateUserModerationStateAction} className="grid gap-3 rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
                               <input type="hidden" name="userId" value={report.targetUserId} />
                               <input type="hidden" name="reportId" value={report.id} />
-                              <input type="hidden" name="notes" value="User sign-in suspended from the moderation queue pending review." />
-                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Additional action</p>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Suspend user account</p>
+                              <Textarea
+                                required
+                                name="notes"
+                                className="min-h-20"
+                                placeholder="Explain why this user account is being suspended."
+                              />
                               <Button size="sm" variant="outline" className="mt-3 w-full" name="action" value="SUSPEND">
                                 Suspend user
                               </Button>

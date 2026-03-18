@@ -236,7 +236,7 @@ function getSubscriptionPerks(headline: string | null) {
   return [
     "Subscriber-only creator posts",
     "Billing records tracked across renewals and unlocks",
-    headline ? `${headline} updates in your inbox` : "Private creator messages",
+    headline ? `${headline} updates in your messages` : "Creator message history",
   ];
 }
 
@@ -296,7 +296,7 @@ function getDemoFanSubscriptionsPageData(): FanSubscriptionsPageData {
       creatorAvatarUrl: subscription.creatorAvatarUrl,
       coverUrl: subscription.coverUrl,
       destinationHref: `/fan/messages/${subscription.conversationId}`,
-      destinationLabel: "Open conversation",
+      destinationLabel: "Open message history",
       status: subscription.status,
       canCancel: subscription.status !== "PAUSED",
       cancelAtPeriodEnd: false,
@@ -508,24 +508,24 @@ export const getFanFeed = cache(async (): Promise<FanFeedItem[]> => {
               : `/creators/${creator.slug}`
             : "/fan/subscriptions",
           publishedLabel: subscriberPost?.publishedAt ? formatTimeAgo(subscriberPost.publishedAt) : "New",
-          headline: subscriberPost?.title ?? `${creator.user.profile!.displayName} premium post`,
+          headline: subscriberPost?.title ?? `${creator.user.profile!.displayName} subscriber post`,
           caption:
             hasAccess
               ? subscriberPost?.caption ??
                 "Subscriber-only content is available once this creator is part of your active memberships."
-              : "Subscribe to unlock this creator's premium feed.",
+              : "Start a membership to unlock this creator's subscriber posts.",
           access: hasAccess ? "INCLUDED" : "LOCKED",
           contextLabel: hasAccess
             ? "Unlocked by your active subscription"
-            : "Purchase a subscription to reveal this creator's premium feed",
+            : "Start a membership to reveal this creator's subscriber posts",
           media: {
             imageUrl: hasAccess
               ? getSignedMediaUrl(media)
               : getSignedMediaUrl(media, media?.thumbnailUrl ? "thumbnail" : undefined),
             imageAlt: hasAccess
-              ? media?.altText ?? subscriberPost?.title ?? `${creator.user.profile!.displayName} premium post`
+              ? media?.altText ?? subscriberPost?.title ?? `${creator.user.profile!.displayName} subscriber post`
               : "Subscriber-only preview",
-            label: hasAccess ? "Premium post unlocked" : "Subscriber-only preview",
+            label: hasAccess ? "Subscriber post unlocked" : "Subscriber-only preview",
           },
         };
       });
@@ -626,7 +626,7 @@ export const getFanSubscriptionsPageData = cache(async (): Promise<FanSubscripti
           creatorAvatarUrl: getSafeDisplayUrl(profile.avatarUrl) ?? "",
           coverUrl: getSignedMediaUrl(coverMedia),
           destinationHref: conversationId ? `/fan/messages/${conversationId}` : `/creators/${creator.slug}`,
-          destinationLabel: conversationId ? "Open conversation" : "Open creator page",
+          destinationLabel: conversationId ? "Open message history" : "Open creator page",
           status,
           canCancel: isActiveSubscription(subscription) && !subscription.cancelAtPeriodEnd,
           cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
@@ -641,10 +641,10 @@ export const getFanSubscriptionsPageData = cache(async (): Promise<FanSubscripti
           perks: getSubscriptionPerks(creator.headline),
           summary:
             status === "PAUSED"
-              ? "This membership is visible for state handling, but premium content is currently gated."
+              ? "This membership is visible for account history, but subscriber posts are currently gated."
               : status === "CANCELS_AT_PERIOD_END"
-                ? "Cancellation is scheduled. Premium posts and message access stay available through the end of the current billing period."
-              : "Premium posts, message access, and billing history are active for this creator.",
+                ? "Ending is scheduled. Subscriber posts and message history stay available through the end of the current billing period."
+                : "Subscriber posts, message history, and billing history are active for this creator.",
         } satisfies FanSubscriptionCard;
       });
 

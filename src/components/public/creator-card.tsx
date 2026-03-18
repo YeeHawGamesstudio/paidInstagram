@@ -1,13 +1,6 @@
 import Link from "next/link";
-import { Crown, Lock, Sparkles } from "lucide-react";
-
-import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  getCreatorApprovalStatusLabel,
-  getCreatorVerificationStatusLabel,
-} from "@/lib/compliance/scaffolding";
 import { cn } from "@/lib/utils";
 import type { DemoCreator } from "@/lib/public/demo-data";
 import { formatPriceMonthly } from "@/lib/public/demo-data";
@@ -59,16 +52,8 @@ export function CreatorCard({ creator, layout = "grid" }: CreatorCardProps) {
 
       <div className="flex flex-col gap-6 p-5 sm:p-6">
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Featured creator</p>
           <h3 className="font-display text-[2rem] leading-tight sm:text-[2.35rem]">{creator.headline}</h3>
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[0.95rem]">{creator.highlight}</p>
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge tone="success">{getCreatorApprovalStatusLabel(creator.compliance.approvalStatus)}</StatusBadge>
-            <StatusBadge tone="warning">{getCreatorVerificationStatusLabel(creator.compliance.verificationStatus)}</StatusBadge>
-            <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-muted-foreground">
-              {creator.compliance.adultContentLabel}
-            </span>
-          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -82,38 +67,13 @@ export function CreatorCard({ creator, layout = "grid" }: CreatorCardProps) {
           ))}
         </div>
 
-        <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-          <div className="rounded-[1.4rem] border border-white/8 bg-black/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Public previews</p>
-            <div className="mt-2 flex items-center gap-2 text-foreground">
-              <Sparkles className="size-4 text-primary" />
-              <span className="text-lg font-semibold">{publicPostCount}</span>
-            </div>
-          </div>
-          <div className="rounded-[1.4rem] border border-white/8 bg-black/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Exclusive drops</p>
-            <div className="mt-2 flex items-center gap-2 text-foreground">
-              <Lock className="size-4 text-primary" />
-              <span className="text-lg font-semibold">{creator.stats.exclusiveDrops}</span>
-            </div>
-          </div>
-          <div className="rounded-[1.4rem] border border-white/8 bg-black/20 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Typical pace</p>
-            <div className="mt-2 flex items-center gap-2 text-foreground">
-              <Crown className="size-4 text-primary" />
-              <span className="text-sm font-medium">{creator.stats.replyWindow}</span>
-            </div>
-          </div>
-        </div>
+        <p className="text-sm text-muted-foreground">
+          {publicPostCount} free · {creator.stats.exclusiveDrops} exclusive · Replies in {creator.stats.replyWindow}
+        </p>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button asChild className="sm:min-w-40">
-            <Link href={`/creators/${creator.slug}`}>View profile</Link>
-          </Button>
-          <Button variant="outline" asChild className="sm:min-w-40">
-            <Link href="/login">Access details</Link>
-          </Button>
-        </div>
+        <Button asChild className="sm:min-w-40 w-fit">
+          <Link href={`/creators/${creator.slug}`}>View profile</Link>
+        </Button>
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <Link href="/adult-disclaimer" className="text-muted-foreground transition hover:text-foreground">

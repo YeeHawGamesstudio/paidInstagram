@@ -28,12 +28,12 @@ export default function FanErrorPage({ error, reset }: FanErrorPageProps) {
 
   return (
     <FanStateCard
-      eyebrow="Fan fallback"
-      title="This fan screen could not load"
-      description="OnlyClaw hit an unexpected problem while loading this fan page. You can try again or jump back to another fan area."
-      secondaryText={error.digest ? `Error reference: ${error.digest}` : "Try again first. If the problem keeps happening, the request details were logged for follow-up."}
+      title="Something went wrong"
+      description="Something went wrong."
+      secondaryText={error.digest ? `Reference: ${error.digest}` : undefined}
       actions={[
-        { label: "Open inbox", href: "/fan/messages", variant: "outline" },
+        { label: "Back to home", href: "/fan" },
+        { label: "Open messages", href: "/fan/messages", variant: "outline" },
         { label: "Manage memberships", href: "/fan/subscriptions", variant: "outline" },
       ]}
     >

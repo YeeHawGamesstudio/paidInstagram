@@ -11,7 +11,6 @@ export default async function AdminAuditPage() {
   const adminActionLog = await listRecentAdminActions(50);
   const highlightedActions = adminActionLog.filter((entry) => !entry.isLowSignal);
   const routineActions = adminActionLog.filter((entry) => entry.isLowSignal);
-  const groupedRoutineCount = routineActions.filter((entry) => (entry.groupedCount ?? 1) > 1).length;
   const notesCapturedCount = adminActionLog.filter((entry) => entry.hasNotes).length;
 
   return (
@@ -19,7 +18,7 @@ export default async function AdminAuditPage() {
       <AdminPageHeader
         eyebrow="Audit visibility"
         title="Admin audit log"
-        description="Review recent moderation and compliance events."
+        description="Showing the 50 most recent moderation and compliance events."
       />
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -38,9 +37,9 @@ export default async function AdminAuditPage() {
           labelClassName="text-amber-300"
         />
         <MetricCard
-          label="Grouped routine"
-          value={groupedRoutineCount}
-          detail="Repeated low-signal actions collapsed."
+          label="Routine entries"
+          value={routineActions.length}
+          detail="Low-signal actions kept visible for full timeline review."
           icon={ShieldCheck}
           labelClassName="text-emerald-300"
         />
@@ -90,7 +89,7 @@ export default async function AdminAuditPage() {
             <section className="grid gap-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Routine activity</p>
-                <p className="text-xs text-muted-foreground">De-emphasized when no note was captured.</p>
+                <p className="text-xs text-muted-foreground">De-emphasized visually, but still shown line by line.</p>
               </div>
               <div className="grid gap-2">
                 {routineActions.map((entry) => (

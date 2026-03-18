@@ -75,9 +75,9 @@ export const creatorProfileSummary = {
   conversionLabel: "7.4% public-to-paid",
   profileCompleteness: "Profile 96% complete",
   highlights: [
-    "Premium editorial profile presentation",
-    "Clear tease-to-subscribe publishing flow",
-    "Paid messages and locked media upsell moments",
+    "Profile",
+    "Publishing",
+    "Paid messages",
   ],
 } as const;
 
@@ -88,8 +88,7 @@ export const creatorComplianceSummary = {
   contentPolicyAcceptance: "Accepted 3 days ago",
   dmcaContactEmail: "rights@onlyclaw.example",
   lastReviewLabel: "Admin compliance check updated today",
-  readinessNote:
-    "The creator account is live, but the stronger verification and rights-management workflow is still placeholder scaffolding.",
+  readinessNote: "Verification and rights workflows pending.",
 } as const;
 
 export const creatorComplianceChecklist: Array<{
@@ -127,18 +126,18 @@ export const creatorComplianceChecklist: Array<{
 export const creatorVerificationMilestones = [
   {
     label: "Identity / age record",
-    state: "Placeholder hook ready",
-    detail: "Store a reviewed status later without overbuilding KYC today.",
+    state: "Pending",
+    detail: "Awaiting document review.",
   },
   {
     label: "Payout readiness",
-    state: "Not implemented",
-    detail: "Reserve this lane for future tax, payout, and sanctions screening checks.",
+    state: "Not started",
+    detail: "Tax and payout screening required.",
   },
   {
     label: "Policy attestations",
-    state: "UI scaffolded",
-    detail: "Creators can be routed through future terms and content-policy re-acceptance flows.",
+    state: "Ready",
+    detail: "Terms and content policy acceptance available.",
   },
 ];
 
@@ -288,9 +287,9 @@ export const creatorSubscribers: CreatorSubscriber[] = [
 ];
 
 export const creatorAudienceSnapshot = [
-  { label: "Active subscribers", value: "482" },
-  { label: "VIP subscribers", value: "34" },
-  { label: "Churn watch", value: "12" },
+  { label: "Active subscribers", value: "3" },
+  { label: "VIP subscribers", value: "1" },
+  { label: "Churn watch", value: "0" },
 ];
 
 export const creatorProfileFormDefaults = {
@@ -299,7 +298,7 @@ export const creatorProfileFormDefaults = {
   headline: creator.headline,
   bio: creator.bio,
   welcomeMessage:
-    "Welcome inside the private lounge. Subscriber drops land here first, and paid bundles are always optional.",
+    "You're in. New drops land here. --Luna",
   location: "Neon City",
   rightsContactEmail: "rights@onlyclaw.example",
   adultDisclosure:

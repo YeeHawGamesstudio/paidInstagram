@@ -22,8 +22,8 @@ export default async function FanMessagesPage() {
     <div className="grid gap-4 sm:gap-5">
       <FanPageHeader
         eyebrow="Messages"
-        title="Premium creator inbox"
-        description="Browse active conversations, spot unread replies quickly, and jump into paid drops or subscriber-only chat moments."
+        title="Creator updates inbox"
+        description="Browse creator message history, spot unread updates quickly, and jump into paid drops or subscriber-only message threads."
         actions={
           <Button asChild variant="outline" className="w-full justify-center sm:w-auto">
             <Link href="/fan/subscriptions">View memberships</Link>
@@ -113,8 +113,8 @@ export default async function FanMessagesPage() {
           <EmptyStateCard>
             <div className="grid gap-4">
               <p>
-                No conversations yet. Once creators reply or send premium drops, your inbox will collect them here in a
-                single polished thread list.
+                No conversations yet. Once creators send updates or premium drops, your inbox will collect them here in one
+                message-history list.
               </p>
               <div className="grid gap-2 sm:flex sm:flex-wrap">
                 <Button asChild className="w-full justify-center sm:w-auto">

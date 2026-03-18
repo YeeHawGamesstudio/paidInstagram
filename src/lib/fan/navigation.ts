@@ -12,7 +12,7 @@ export const fanNavigation: readonly FanNavItem[] = [
   {
     label: "Subscriptions",
     href: "/fan/subscriptions",
-    icon: "creditCard",
+    icon: "badgeDollarSign",
     matchPrefix: "/fan/subscriptions",
   },
   {

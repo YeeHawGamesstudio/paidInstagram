@@ -37,7 +37,7 @@ export function FanShellFrame({ fanProfile, children }: FanShellFrameProps) {
                 OnlyClaw
               </Link>
               <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-300">
-                Fan access
+                Fan
               </span>
               <SignOutButton className="h-8 px-3 text-[11px]" variant="destructive" />
             </div>
@@ -47,12 +47,12 @@ export function FanShellFrame({ fanProfile, children }: FanShellFrameProps) {
                 isHome ? "mt-3 text-[1.95rem] sm:text-[2.35rem]" : "mt-2.5 text-[1.45rem] sm:text-[1.7rem]",
               )}
             >
-              {isHome ? "Premium fan experience" : "Fan hub"}
+              {isHome ? "Fan home" : "Fan hub"}
             </h1>
             <p className={cn("max-w-xl text-sm leading-6 text-muted-foreground", isHome ? "mt-2" : "mt-1.5 max-w-lg")}>
               {isHome
-                ? "Quick access to memberships, inbox, and premium activity in a mobile-first layout."
-                : "Jump between inbox, memberships, account, and premium activity without losing your place."}
+                ? "Quick access to memberships, messages, and billing activity in a mobile-first layout."
+                : "Jump between messages, memberships, account, and billing activity without losing your place."}
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export function FanShellFrame({ fanProfile, children }: FanShellFrameProps) {
                 <p className="mt-1 font-display text-xl sm:text-2xl">{fanProfile.membershipCount}</p>
               </div>
               <div className="rounded-[1.35rem] border border-white/8 bg-black/20 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:rounded-[1.6rem] sm:px-4 sm:py-3">
-                <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Unread messages</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Unread updates</p>
                 <p className="mt-1 font-display text-xl sm:text-2xl">{fanProfile.unreadMessages}</p>
               </div>
               <div className="col-span-2 rounded-[1.35rem] border border-white/8 bg-black/20 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:col-span-1 sm:rounded-[1.6rem] sm:px-4 sm:py-3">

@@ -10,7 +10,7 @@ export default function ContentPolicyPage() {
 
   return (
     <LegalPage
-      eyebrow="Policy placeholder"
+      eyebrow="Beta content policy"
       title={document.title}
       description={document.description}
       sections={document.sections}

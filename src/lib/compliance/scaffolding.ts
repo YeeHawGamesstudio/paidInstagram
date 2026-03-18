@@ -39,8 +39,8 @@ export type LegalDocumentDefinition = {
   relatedLinks?: LegalDocumentLink[];
 };
 
-export const placeholderLegalNotice =
-  "Placeholder only. This page is production-shaped scaffolding for future counsel-reviewed policy text. It does not represent finalized legal terms, regulatory clearance, or complete compliance coverage.";
+export const betaLegalNotice =
+  "Current beta policy notice. This page describes the rules and operating expectations for the current OnlyClaw beta. It should still receive formal legal review before any broader public paid launch.";
 
 export const adultAccessExemptPaths = [
   "/18-plus",
@@ -71,19 +71,19 @@ export const legalDocuments: LegalDocumentDefinition[] = [
     slug: "terms",
     title: "Terms of Service",
     description:
-      "This route is a placeholder for the platform's eventual Terms of Service. The page structure, disclosure areas, and navigation are ready now, but the legal text still needs formal review and final drafting.",
+      "These terms describe the current operating rules for the OnlyClaw beta, including account eligibility, platform boundaries, and how access may be limited while the product remains in controlled launch.",
     sections: [
       {
         heading: "Eligibility and account use",
-        body: "Final terms should define who may use the service, age restrictions, account security expectations, and role-specific obligations for fans, creators, and internal admins.",
+        body: "OnlyClaw is for adults who are legally allowed to access adult-oriented creator content in their jurisdiction. Users are responsible for accurate account information, account security, and following role-specific rules for fan, creator, and admin access.",
       },
       {
-        heading: "Paid products and billing boundaries",
-        body: "Production terms should later cover renewals, refunds, taxes, chargebacks, payout boundaries, and the responsibilities of any payment or payout providers once live billing is enabled.",
+        heading: "Beta product and billing scope",
+        body: "This beta is not a live paid launch. Production billing remains out of scope here, and any simulated billing behavior used in staging is for testing only. Public beta access, creator approvals, and feature availability may change as the platform is hardened.",
       },
       {
         heading: "Platform enforcement",
-        body: "A finalized version should explain when accounts, creators, content, or transactions may be limited, reviewed, removed, suspended, or escalated to legal and trust-and-safety workflows.",
+        body: "OnlyClaw may review, restrict, suspend, or remove accounts, creators, content, or access when safety, policy, fraud, legal, or operational concerns require intervention. Moderation and admin actions are recorded and may be escalated through internal trust-and-safety or legal workflows.",
       },
     ],
     relatedLinks: publicComplianceLinks,
@@ -92,19 +92,19 @@ export const legalDocuments: LegalDocumentDefinition[] = [
     slug: "privacy",
     title: "Privacy Policy",
     description:
-      "This page reserves a clear place for the platform's privacy disclosures without implying those disclosures are complete today. It is intentionally written as a placeholder until data flows and retention rules are finalized.",
+      "This policy explains the main categories of data handled in the current OnlyClaw beta and how that information supports account access, moderation, support, and platform operations.",
     sections: [
       {
         heading: "Information categories",
-        body: "Future copy should describe profile data, subscription activity, device and analytics events, moderation records, support communications, and any verification materials collected later.",
+        body: "OnlyClaw may process account details, profile information, session and device data, moderation reports, admin action history, support communications, and beta activity needed to operate the service safely.",
       },
       {
         heading: "Use and sharing",
-        body: "Final disclosures should explain how data may support account operations, fraud prevention, moderation, legal process response, personalization, reporting tools, and service providers.",
+        body: "That information may be used for account operations, product security, moderation, fraud prevention, legal compliance, support handling, and service-provider operations such as hosting, database access, logging, and authentication.",
       },
       {
         heading: "Retention and rights",
-        body: "A counsel-reviewed policy should later explain retention windows, deletion requests, appeals, and region-specific privacy rights once those operational processes are defined.",
+        body: "Operationally important records such as moderation data, audit history, and account state may be retained for safety, support, legal, and recovery reasons. More detailed regional rights and retention language should be reviewed before any broader public paid launch.",
       },
     ],
     relatedLinks: publicComplianceLinks,
@@ -113,19 +113,19 @@ export const legalDocuments: LegalDocumentDefinition[] = [
     slug: "content-policy",
     title: "Content Policy",
     description:
-      "This placeholder describes where the platform's content standards will live. It should later define what creators, fans, and internal teams may publish, preview, message, monetize, report, or remove.",
+      "This policy describes the current content standards for the OnlyClaw beta, including what may appear in creator pages, subscriber content, messages, previews, and moderation queues.",
     sections: [
       {
         heading: "Adult-content boundaries",
-        body: "Future policy text should define what adult material is allowed, what must remain prohibited, which content requires manual review, and how previews, metadata, and discovery surfaces are constrained.",
+        body: "Adult-oriented creator content may only appear inside the platform's intended age-gated and moderated surfaces. Discovery copy, previews, metadata, and public-facing routes should remain reviewable and must not present prohibited or obviously unsafe material.",
       },
       {
         heading: "Restricted and prohibited material",
-        body: "A finalized policy should cover non-consensual content, minors, exploitative material, illegal conduct, impersonation, coercion, abusive messaging, and deceptive monetization patterns.",
+        body: "OnlyClaw prohibits content involving minors, non-consensual or exploitative material, coercion, illegal conduct, impersonation, abusive messaging, and deceptive monetization or reporting behavior.",
       },
       {
         heading: "Enforcement and appeals",
-        body: "Later revisions should document how reports, moderator actions, creator holds, visibility restrictions, and appeals are logged, reviewed, and escalated.",
+        body: "Reports, content restrictions, creator holds, user restrictions, and related admin actions may be reviewed and enforced by the moderation team. Public-beta appeal and legal review procedures should be expanded further before a later paid launch.",
       },
     ],
     relatedLinks: publicComplianceLinks,
@@ -134,19 +134,19 @@ export const legalDocuments: LegalDocumentDefinition[] = [
     slug: "acceptable-use",
     title: "Acceptable Use Policy",
     description:
-      "This placeholder sets aside the operational home for user-behavior rules. It intentionally avoids promising a finished enforcement standard until abuse-prevention and moderation procedures are finalized.",
+      "This policy defines the current behavior rules for fans, creators, and internal operators using the OnlyClaw beta.",
     sections: [
       {
         heading: "Fan and creator conduct",
-        body: "Final policy text should later explain harassment, spam, fraudulent behavior, credential sharing, abusive chargebacks, evasion of enforcement, and misuse of messaging features.",
+        body: "Harassment, spam, fraudulent behavior, credential sharing, abusive chargebacks, evasion of enforcement, and misuse of creator messaging or paid-drop surfaces are not allowed.",
       },
       {
         heading: "Automation and scraping",
-        body: "Production language should define restrictions around bots, scraping, reverse engineering, credential attacks, and unauthorized extraction of creator media or subscriber information.",
+        body: "Bots, scraping, credential attacks, reverse engineering, and unauthorized extraction of creator media, subscriber data, or protected platform content are prohibited unless explicitly authorized in writing.",
       },
       {
         heading: "Operational enforcement",
-        body: "A complete version should cover warnings, temporary restrictions, permanent bans, account review holds, payment limits, legal escalation, and audit-log retention for enforcement actions.",
+        body: "OnlyClaw may issue warnings, temporary restrictions, suspensions, or permanent removal when platform abuse, fraud, safety, or legal risk requires it. High-impact actions should be recorded in admin audit history and may be escalated outside the product.",
       },
     ],
     relatedLinks: publicComplianceLinks,
@@ -155,40 +155,40 @@ export const legalDocuments: LegalDocumentDefinition[] = [
     slug: "adult-disclaimer",
     title: "18+ / Adult Content Disclaimer",
     description:
-      "This page provides a clear adult-content disclaimer and explains that the current access gate is only a self-attestation scaffold. It is not an identity-verification or age-verification system.",
+      "This page explains the adult-content boundary for the current OnlyClaw beta and the limits of the product's present access-gating approach.",
     sections: [
       {
         heading: "Adult audience requirement",
-        body: "Access to adult-oriented discovery and creator surfaces should be limited to adults who are legally permitted to view such material in their jurisdiction.",
+        body: "OnlyClaw beta access is intended only for adults who are legally permitted to view adult-oriented content in their jurisdiction. People who are underage or otherwise prohibited from accessing that material must not use the service.",
       },
       {
         heading: "Current gate limitations",
-        body: "The present 18+ flow is a placeholder acknowledgment gate only. It does not validate identity, documents, age-of-majority records, or jurisdiction-specific eligibility.",
+        body: "The current 18+ flow is a self-attestation checkpoint. It does not independently verify identity, documents, age-of-majority records, or jurisdiction-specific eligibility.",
       },
       {
-        heading: "Future compliance expansion",
-        body: "Later product work may add stronger verification, recordkeeping, and moderation procedures, but those systems are not represented as complete or legally sufficient here today.",
+        heading: "Moderation and compliance follow-through",
+        body: "OnlyClaw still expects moderation review, creator approval controls, audit logging, and stronger compliance work around adult-content operations. Additional verification and legal hardening should happen before a later broader launch.",
       },
     ],
     relatedLinks: publicComplianceLinks,
   },
   {
     slug: "dmca",
-    title: "DMCA / Takedown Placeholder",
+    title: "DMCA / Takedown Policy",
     description:
-      "This route is a placeholder intake surface for future copyright and takedown handling. It is designed so real notice-and-action procedures can be added later without restructuring the public app.",
+      "This page explains the current copyright and takedown intake path for the OnlyClaw beta and where rights holders should direct notice requests.",
     sections: [
       {
         heading: "Notice intake",
-        body: "Final copy should explain where copyright owners or authorized agents can submit notices, what information is required, and how incomplete claims are handled.",
+        body: "Copyright owners or authorized agents should use the DMCA and takedown path to report allegedly infringing material. Notices should identify the work, the reported material, contact details, and enough context for review.",
       },
       {
         heading: "Review and response workflow",
-        body: "A production policy should later define acknowledgement timing, temporary content restrictions, creator notifications, counter-notice handling, and repeat-infringer rules if adopted.",
+        body: "OnlyClaw may review the notice, restrict content while a claim is evaluated, and contact the affected creator or account if follow-up is needed. Additional counter-notice and repeat-infringer detail should be finalized before a later paid launch.",
       },
       {
-        heading: "Placeholder limitation",
-        body: "This page does not itself establish a complete DMCA process. It only provides the scaffolding and entry-point structure needed for later legal implementation.",
+        heading: "Current beta limitation",
+        body: "This beta policy gives a real intake path, but it should still receive formal legal review before the platform is opened more broadly or used as a final public paid-launch policy.",
       },
     ],
     relatedLinks: publicComplianceLinks,

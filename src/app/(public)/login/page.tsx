@@ -25,24 +25,23 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_30rem] lg:gap-10 lg:px-8 lg:py-12">
       <section className="flex flex-col justify-center">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Welcome back</p>
-        <h1 className="mt-3 max-w-2xl font-display text-5xl leading-none sm:text-6xl">Return to a premium creator space.</h1>
+        <h1 className="mt-3 max-w-2xl font-display text-5xl leading-none sm:text-6xl">Return to your OnlyClaw account.</h1>
         <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-          Public discovery is open to everyone. Fan, creator, and admin accounts can now sign in directly while protected
-          areas still enforce role-specific access and approval rules.
+          Sign in to access your dashboard, manage subscriptions, and pick up where you left off.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <Card className="border-white/10 bg-white/[0.03] p-5">
             <p className="font-display text-2xl">Discovery</p>
-            <p className="mt-2 text-sm text-muted-foreground">Browse creators and public previews without account access.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Browse creators and free previews without signing in.</p>
           </Card>
           <Card className="border-white/10 bg-white/[0.03] p-5">
             <p className="font-display text-2xl">Accounts</p>
-            <p className="mt-2 text-sm text-muted-foreground">Fans can use self-serve credentials while creator access stays review-aware.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Fans and approved creators can sign in and access their dashboards immediately.</p>
           </Card>
           <Card className="border-white/10 bg-white/[0.03] p-5">
             <p className="font-display text-2xl">Gated</p>
-            <p className="mt-2 text-sm text-muted-foreground">Protected routes still respect role checks, approval status, and admin-only restrictions.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Certain areas are only available to specific account types and require approval.</p>
           </Card>
         </div>
       </section>
@@ -60,7 +59,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <LoginForm next={params.next} />
 
         <div className="mt-5 rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-muted-foreground">
-          Protected routes still require an authenticated session. Creator studio access opens only after manual approval.
+          Creator studio access opens once your application has been reviewed and approved.
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">

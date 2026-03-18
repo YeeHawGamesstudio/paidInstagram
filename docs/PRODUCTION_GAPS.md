@@ -23,6 +23,8 @@ The largest launch gaps are not basic UI gaps. They are production systems gaps:
 - production-grade infrastructure and monitoring
 - distributed abuse controls and background processing
 
+For the current limited-beta path, use `docs/BETA_BLOCKERS_AND_RISKS.md` to separate true beta blockers from later paid-launch work.
+
 ## Launch Blockers
 
 These should be treated as blockers before a public paid launch.
@@ -126,6 +128,8 @@ Minimum production work:
 - connect `/api/health` to monitoring and paging
 - enable structured log collection and retention
 - define database backup and restore ownership
+
+For the current limited-beta path, the repository now includes an execution runbook in `docs/BETA_LAUNCH_RUNBOOK.md`, but the real infrastructure ownership and external platform setup still need to be completed outside the repo.
 
 ## High-Priority Gaps
 
@@ -232,10 +236,11 @@ Current state:
 
 - admin routes and admin actions exist
 - the signup flow states that admin accounts are provisioned manually
+- the repository now includes an admin operations runbook for provisioning, creator approval, report handling, escalation, and audit-note expectations
 
 Gap:
 
-- the repo does not define a hardened admin provisioning workflow, approval SOPs, or incident escalation process
+- the team still needs to assign real owners, staff coverage, and follow the documented process outside the repository
 
 Why it matters:
 

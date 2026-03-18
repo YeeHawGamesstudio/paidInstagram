@@ -10,12 +10,12 @@ const roleOptions = [
   {
     label: roleLabels.FAN,
     value: "FAN",
-    description: "Browse creators, unlock memberships, and participate in premium fan flows.",
+    description: "Browse creators, subscribe to your favorites, and enjoy exclusive drops and messages.",
   },
   {
     label: roleLabels.CREATOR,
     value: "CREATOR",
-    description: "Manage profile presentation, publishing, and premium audience surfaces.",
+    description: "Set up your profile, publish content, manage pricing, and connect with subscribers.",
   },
 ] as const;
 
@@ -29,11 +29,11 @@ export default async function SignupPage() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_32rem] lg:gap-10 lg:px-8 lg:py-12">
       <section className="flex flex-col justify-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Controlled access</p>
-        <h1 className="mt-3 max-w-2xl font-display text-5xl leading-none sm:text-6xl">Access is opening in phases.</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Join OnlyClaw</p>
+        <h1 className="mt-3 max-w-2xl font-display text-5xl leading-none sm:text-6xl">Create your account.</h1>
         <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-          Public discovery is open now. Fan accounts are ready immediately, while creator accounts can register and then
-          wait for manual approval before creator tools open.
+          Fan accounts are ready to go instantly. Creator accounts require a quick approval step before your studio tools
+          become available.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -58,7 +58,7 @@ export default async function SignupPage() {
         <SignupForm />
 
         <div className="mt-5 rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-muted-foreground">
-          Creator studio access remains approval-gated even after registration. Admin accounts are still provisioned manually.
+          Creator studio access opens after your application is reviewed and approved.
         </div>
 
         <p className="mt-6 text-sm text-muted-foreground">

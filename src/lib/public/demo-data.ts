@@ -42,23 +42,23 @@ export type DemoCreator = {
 
 export const creatorBenefits = [
   {
-    title: "Editorial presentation",
-    description: "Profiles are designed like premium digital magazines instead of generic creator dashboards.",
+    title: "Profiles worth browsing",
+    description: "Not a grid of thumbnails. Each creator page is its own world.",
   },
   {
-    title: "Tease-to-subscribe funnel",
-    description: "Public previews create desire while locked states make the paid value unmistakably clear.",
+    title: "Try before you pay",
+    description: "Every creator has free posts. See what they're about, then decide.",
   },
   {
-    title: "Mobile-native conversion",
-    description: "Subscribe moments stay visible on smaller screens without turning the experience into a loud sales page.",
+    title: "Works on everything",
+    description: "Phone, tablet, laptop -- same experience, no app required.",
   },
 ] as const;
 
 export const landingStats = [
   { label: "Featured creators", value: "03" },
-  { label: "Seeded teaser posts", value: "06" },
-  { label: "Premium surfaces", value: "06" },
+  { label: "Free preview posts", value: "06" },
+  { label: "Exclusive drops", value: "06" },
 ] as const;
 
 export const demoCreators: DemoCreator[] = [
@@ -67,13 +67,13 @@ export const demoCreators: DemoCreator[] = [
     displayName: "Luna Byte",
     username: "lunabyte",
     headline: "Neon cyber idol",
-    bio: "AI cyber idol sharing neon diaries, polished rooftop teasers, and private after-hours sets for subscribers.",
+    bio: "Neon city nights. Chrome-lit sets. The after-hours stuff stays locked.",
     avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
     coverUrl: "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1400&q=80",
     priceMonthlyCents: 1299,
     currency: "usd",
     category: "Cyber glam",
-    highlight: "Chrome-lit visuals, late-night voice notes, and cinematic premium drops.",
+    highlight: "Late-night voice notes and cinematic drops you won't find on her free feed.",
     tags: ["AI creator", "Neon sets", "Voice notes"],
     stats: {
       teaserPosts: 12,
@@ -114,13 +114,13 @@ export const demoCreators: DemoCreator[] = [
     displayName: "Ivy Orbit",
     username: "ivyorbit",
     headline: "Soft-space dreamer",
-    bio: "Dreamy AI creator blending orbital aesthetics with intimate journals, ambient visuals, and premium private entries.",
+    bio: "Somewhere between a space station and a dream journal. Subscriber entries go deeper.",
     avatarUrl: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df2?auto=format&fit=crop&w=400&q=80",
     coverUrl: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1400&q=80",
     priceMonthlyCents: 1499,
     currency: "usd",
     category: "Celestial muse",
-    highlight: "Soft editorial imagery, subscriber diaries, and intimate station-log storytelling.",
+    highlight: "The diary entries get personal. Station logs are for subscribers only.",
     tags: ["AI creator", "Private journals", "Ambient drops"],
     stats: {
       teaserPosts: 9,
@@ -161,13 +161,13 @@ export const demoCreators: DemoCreator[] = [
     displayName: "Vega Vale",
     username: "vegavale",
     headline: "Fantasy voice and velvet lore",
-    bio: "An AI fantasy persona focused on teasing story-driven premium content with lush scenes, audio, and subscriber galleries.",
+    bio: "Fantasy worlds with a velvet edge. Audio drops and story arcs behind the lock.",
     avatarUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
     coverUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80",
     priceMonthlyCents: 999,
     currency: "usd",
     category: "Fantasy siren",
-    highlight: "Velvet fantasy worlds, premium audio, and a clear tease-to-unlock subscription arc.",
+    highlight: "Audio-first. Story arcs that build over weeks. The locked chapters hit different.",
     tags: ["AI creator", "Fantasy roleplay", "Audio drops"],
     stats: {
       teaserPosts: 14,

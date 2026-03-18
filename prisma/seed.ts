@@ -618,7 +618,7 @@ async function seed() {
     data: {
       conversationId: miaIvyConversation.id,
       senderId: ivy.id,
-      body: "I do. Subscribers get the full docking logs, and I send custom paid previews in chat.",
+      body: "I do. Subscribers get the full docking logs, and I send custom paid previews in messages.",
       createdAt: daysAgo(1.1),
     },
   });

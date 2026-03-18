@@ -1,16 +1,17 @@
-import { Lock, MessageSquareText, Send, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { DollarSign, Mail, Users } from "lucide-react";
 
+import { CreatorPaidDropForm } from "@/components/creator/creator-paid-drop-form";
+import { CreatorReplyForm } from "@/components/creator/creator-reply-form";
 import { CreatorPageHeader } from "@/components/creator/creator-page-header";
 import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { MetricCard } from "@/components/shared/metric-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { creatorConversations, formatCreatorCurrency } from "@/lib/creator/demo-data";
+import { getCreatorConversationPreviews } from "@/lib/creator/server-data";
 import { getCreatorConversationTone, getCreatorConversationToneLabel } from "@/lib/creator/presentation";
+import { formatCurrency } from "@/lib/formatting";
 
 function getConversationNextStep(activeSubscription: boolean, unreadCount: number) {
   if (unreadCount > 0 && activeSubscription) {
@@ -39,8 +40,25 @@ function getAvatarStyle(imageUrl?: string) {
   };
 }
 
-export default function CreatorMessagesPage() {
-  const sortedConversations = [...creatorConversations].sort((left, right) => {
+export default async function CreatorMessagesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ conversationId?: string }>;
+}) {
+  const conversations = await getCreatorConversationPreviews();
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const selectedConversationId = resolvedSearchParams?.conversationId;
+  const sortedConversations = [...conversations].sort((left, right) => {
+    if (selectedConversationId) {
+      if (left.id === selectedConversationId) {
+        return -1;
+      }
+
+      if (right.id === selectedConversationId) {
+        return 1;
+      }
+    }
+
     const unreadDelta = right.unreadCount - left.unreadCount;
 
     if (unreadDelta !== 0) {
@@ -55,17 +73,15 @@ export default function CreatorMessagesPage() {
   });
 
   const featuredConversation = sortedConversations[0];
-  const activeSubscribers = creatorConversations.filter((item) => item.activeSubscription).length;
-  const unreadThreads = creatorConversations.filter((item) => item.unreadCount > 0).length;
-  const lapsedThreads = creatorConversations.filter((item) => !item.activeSubscription).length;
-  const offerBaseline = featuredConversation ? formatCreatorCurrency(featuredConversation.suggestedOfferCents) : "N/A";
+  const activeSubscribers = conversations.filter((item) => item.activeSubscription).length;
+  const unreadThreads = conversations.filter((item) => item.unreadCount > 0).length;
+
+  const offerBaseline = featuredConversation ? formatCurrency(featuredConversation.suggestedOfferCents, "usd") : "N/A";
 
   return (
     <div className="grid gap-6">
       <CreatorPageHeader
-        eyebrow="Messages"
-        title="Inbox and paid-drop preview"
-        description="Review thread health, check subscription context, and test the paid-message form. Sending is disabled here."
+        title="Messages"
       />
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -73,55 +89,35 @@ export default function CreatorMessagesPage() {
           label="Unread threads"
           value={unreadThreads}
           detail="Work these first before reviewing quieter threads."
-          icon={MessageSquareText}
+          icon={Mail}
           labelClassName="text-primary"
         />
         <MetricCard
           label="Subscriber chats"
           value={activeSubscribers}
           detail="Threads tied to an active subscription."
-          icon={Sparkles}
+          icon={Users}
           labelClassName="text-primary"
         />
         <MetricCard
           label="Offer baseline"
           value={offerBaseline}
           detail="Starting point for the highest-priority paid-drop draft."
-          icon={Lock}
+          icon={DollarSign}
           labelClassName="text-primary"
         />
       </section>
-
-      <Card className="border-white/10 bg-white/[0.04] p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Inbox workflow</p>
-        <h2 className="mt-2 font-display text-3xl">Triage first, draft second</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          This launch slice is inbox plus paid-drop composer only. There is no thread-detail route yet, so use the list to
-          prioritize who needs attention and the right rail to validate copy, pricing, and attachments.
-        </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Reply pressure</p>
-            <p className="mt-2 text-sm text-foreground/85">{unreadThreads} unread threads need the first pass.</p>
-          </div>
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Subscriber context</p>
-            <p className="mt-2 text-sm text-foreground/85">
-              {activeSubscribers} subscriber chats and {lapsedThreads} lapsed chats.
-            </p>
-          </div>
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Paid-drop review</p>
-            <p className="mt-2 text-sm text-foreground/85">Use the composer to validate offer copy and price only. Sending stays disabled.</p>
-          </div>
-        </div>
-      </Card>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="grid gap-4">
           {sortedConversations.length > 0 ? (
             sortedConversations.map((conversation) => (
-              <Card key={conversation.id} className="border-white/10 bg-[linear-gradient(180deg,_rgba(20,20,24,0.98),_rgba(11,11,14,0.96))] p-5">
+              <Card
+                key={conversation.id}
+                className={`border-white/10 bg-[linear-gradient(180deg,_rgba(20,20,24,0.98),_rgba(11,11,14,0.96))] p-5 ${
+                  conversation.id === selectedConversationId ? "ring-1 ring-primary/40" : ""
+                }`}
+              >
                 <div className="flex items-start gap-4">
                   <div
                     className="size-14 rounded-[1.4rem] border border-white/10 bg-cover bg-center"
@@ -136,6 +132,11 @@ export default function CreatorMessagesPage() {
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
+                        {conversation.id === selectedConversationId ? (
+                          <StatusBadge tone="creator" size="xs">
+                            Currently viewing
+                          </StatusBadge>
+                        ) : null}
                         {conversation.unreadCount > 0 ? (
                           <StatusBadge tone={getCreatorConversationTone(conversation.tone)} size="xs">
                             {conversation.unreadCount} unread
@@ -172,17 +173,17 @@ export default function CreatorMessagesPage() {
                       {getConversationNextStep(conversation.activeSubscription, conversation.unreadCount)}
                     </p>
                     <p className="mt-3 text-sm text-muted-foreground">
-                      Suggested locked drop {formatCreatorCurrency(conversation.suggestedOfferCents)}
+                      Suggested locked drop {formatCurrency(conversation.suggestedOfferCents, "usd")}
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 md:self-end">
-                    <Button type="button" variant="outline" size="sm" disabled>
-                      Reply disabled
-                    </Button>
-                    <Button type="button" size="sm" disabled>
-                      Paid drop disabled
-                    </Button>
+                  <div className="grid gap-3 md:w-[22rem]">
+                    <CreatorReplyForm conversationId={conversation.id} fanName={conversation.fanName} />
+                    <div className="flex flex-wrap items-center gap-2 md:self-end">
+                      <Button asChild type="button" size="sm" variant="outline">
+                        <Link href={`/creator/messages?conversationId=${conversation.id}`}>Draft paid drop</Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -201,91 +202,13 @@ export default function CreatorMessagesPage() {
 
         <aside className="grid gap-4 self-start xl:sticky xl:top-24">
           <Card className="border-white/10 bg-[linear-gradient(180deg,_rgba(45,24,75,0.32),_rgba(11,11,15,0.98))] p-5">
-            <div className="flex items-center gap-2 text-[var(--color-creator)]">
-              <Lock className="size-4" />
-              <p className="text-xs font-semibold uppercase tracking-[0.24em]">Paid drop draft</p>
-            </div>
-            <h2 className="mt-3 font-display text-3xl">Review a locked message</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Validate recipient choice, copy, unlock price, and media attachment here. Outbound sending stays disabled in this
-              preview.
-            </p>
-
-            <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-black/20 p-4 text-sm text-muted-foreground">
-              {featuredConversation ? (
-                <>
-                  Best current target: <span className="text-foreground">{featuredConversation.fanName}</span>. This fan has the
-                  highest mix of unread pressure and paid-drop potential in the current sample data.
-                </>
-              ) : (
-                "Once inbox activity exists, this panel will point to the best current subscriber conversation for a paid-drop draft."
-              )}
-            </div>
-
-            <div className="mt-5 grid gap-3">
-              <div className="grid gap-2">
-                <Label htmlFor="fan-recipient">Send to</Label>
-                <select
-                  id="fan-recipient"
-                  defaultValue={featuredConversation?.id}
-                  className="h-11 rounded-2xl border border-border bg-input px-4 text-sm text-foreground outline-none focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-primary/25"
-                >
-                  {creatorConversations.map((conversation) => (
-                    <option key={conversation.id} value={conversation.id}>
-                      {conversation.fanName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="paid-message">Message</Label>
-                <Textarea
-                  id="paid-message"
-                  defaultValue="Here is the locked rooftop sequence with the voice note included. Unlock if you want the full after-hours set."
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="price-cents">Unlock price</Label>
-                <Input id="price-cents" defaultValue={featuredConversation ? featuredConversation.suggestedOfferCents / 100 : 18} />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="media-attachment">Media attachment</Label>
-                <Input id="media-attachment" type="file" accept="image/*,video/*" />
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Button type="button" disabled>
-                <Send className="size-4" />
-                Send disabled
-              </Button>
-              <Button type="button" variant="outline" disabled>
-                Template save disabled
-              </Button>
-            </div>
+            <CreatorPaidDropForm
+              conversations={conversations}
+              selectedConversationId={selectedConversationId ?? featuredConversation?.id}
+            />
           </Card>
 
-          <Card className="border-white/10 bg-white/[0.04] p-5">
-            <div className="flex items-center gap-2 text-primary">
-              <Sparkles className="size-4" />
-              <p className="text-xs font-semibold uppercase tracking-[0.24em]">Launch-slice note</p>
-            </div>
-            <h3 className="mt-3 text-lg font-semibold">Inbox and composer only</h3>
-            <div className="mt-4 grid gap-3 text-sm text-muted-foreground">
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                Thread detail is not part of this launch slice, so the conversation list is the primary review surface.
-              </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                Use the composer to check copy, price, recipient selection, and file input behavior only.
-              </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                Validate live sending later in an environment where creator messaging is fully enabled.
-              </div>
-            </div>
-          </Card>
+          
         </aside>
       </section>
     </div>

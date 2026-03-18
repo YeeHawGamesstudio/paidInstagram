@@ -10,7 +10,7 @@ export default function AdultDisclaimerPage() {
 
   return (
     <LegalPage
-      eyebrow="Adult-content placeholder"
+      eyebrow="Adult-content notice"
       title={document.title}
       description={document.description}
       sections={document.sections}

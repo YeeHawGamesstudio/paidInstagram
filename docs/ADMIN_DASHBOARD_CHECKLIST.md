@@ -113,3 +113,27 @@ Start with the items that most improve scanability and operator focus:
 - This checklist is based on a read-only smoke test and UX pass.
 - No moderation actions were submitted during testing.
 - Work should be done iteratively and re-tested after each major change group.
+- The non-UI admin operating procedure now lives in `docs/ADMIN_OPERATIONS_RUNBOOK.md`.
+
+## Execution Status
+
+1. Shared Admin Shell: complete
+   The shared shell now reads like a live admin operations surface, and the top metrics come from real admin data instead of static demo counts.
+2. Copy Density And Readability: complete
+   Core admin pages now use tighter, more operational copy without scaffold or internal-tooling framing.
+3. Dashboard Information Hierarchy: complete
+   The dashboard now prioritizes live readiness, reports, creator decisions, risky accounts, and audit activity from real data sources.
+4. Record Card Simplification: complete
+   Reports, review items, creators, and user records continue to use dense operational layouts and now pair them with clearer action rails.
+5. Action Clarity: complete
+   Browser verification confirmed that moderation actions now ask for written notes and describe the resulting enforcement more explicitly.
+6. Queue Logic And Status Accuracy: complete
+   Core admin queues now load from live moderation data, and creator/user actions are state-aware instead of offering invalid combinations.
+7. Badge And Status Cleanup: complete
+   Admin statuses remain consistent across dashboard, creators, users, reports, review, and audit after the hardening pass.
+8. Audit Log Quality: complete
+   The audit feed now fails loudly instead of silently serving demo history, and routine entries stay visible line by line for incident review.
+9. Visual Readability: complete
+   The latest wording and action-rail changes stayed coherent in the browser across all main admin pages.
+10. Mobile Follow-Up: in progress
+   The latest admin hardening was browser-verified on the core routes, but it still needs a dedicated mobile-width re-test after these action-rail changes.

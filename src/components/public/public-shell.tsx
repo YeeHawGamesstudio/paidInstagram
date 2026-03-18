@@ -95,8 +95,7 @@ export async function PublicShell({ children }: Readonly<{ children: ReactNode }
           <div className="flex flex-col gap-2">
             <p className="font-display text-2xl">{siteConfig.name}</p>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              A premium-feeling discovery surface for AI creators, polished for mobile-first browsing and subscription
-              conversion.
+              The home for premium AI creators. Discover, subscribe, and enjoy exclusive content on any device.
             </p>
           </div>
 

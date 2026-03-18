@@ -30,7 +30,7 @@ export function CreatorSubscriptionPurchaseButton({
   creatorName,
   isSubscribed,
   buttonLabel,
-  alreadyOwnedLabel = "Subscribed",
+  alreadyOwnedLabel = "Membership active",
   variant = "default",
   size = "default",
   className,
@@ -62,7 +62,7 @@ export function CreatorSubscriptionPurchaseButton({
         {purchased
           ? alreadyOwnedLabel
           : isPending
-            ? "Processing payment..."
+            ? "Subscribing..."
             : buttonLabel ?? `Subscribe to ${creatorName}`}
       </Button>
       {state.message ? (

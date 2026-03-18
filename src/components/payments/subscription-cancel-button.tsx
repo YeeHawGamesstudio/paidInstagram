@@ -46,10 +46,10 @@ export function SubscriptionCancelButton({
       <input type="hidden" name="subscriptionId" value={subscriptionId} />
       <Button type="submit" variant="outline" className={className} disabled={cancellationScheduled || isPending}>
         {cancellationScheduled
-          ? "Cancellation scheduled"
+          ? "Ends at renewal"
           : isPending
-            ? "Scheduling cancellation..."
-            : `Cancel ${creatorName}`}
+            ? "Updating membership..."
+            : `End ${creatorName} at renewal`}
       </Button>
       {state.message ? (
         <p className="text-xs text-muted-foreground">{state.message}</p>

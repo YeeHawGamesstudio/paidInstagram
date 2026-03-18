@@ -4,21 +4,21 @@ import { publicComplianceLinks } from "@/lib/compliance/scaffolding";
 export default function CookiesPage() {
   return (
     <LegalPage
-      eyebrow="Legal placeholder"
+      eyebrow="Cookie notice"
       title="Cookie Notice"
-      description="This premium-styled placeholder page is ready for a future cookie notice covering analytics, functional cookies, personalization, and consent handling."
+      description="This notice explains how OnlyClaw uses cookies and sessions, including the essential cookies needed for login, security, and site operation."
       sections={[
         {
           heading: "Operational cookies",
-          body: "Future copy can describe the cookies needed for login state, security features, and basic site functionality once those systems are enabled.",
+          body: "OnlyClaw uses basic cookies and similar browser storage for login state, session continuity, security checks, and the adult-access acknowledgment flow.",
         },
         {
           heading: "Analytics and performance",
-          body: "This section is reserved for any future analytics, experimentation, and performance monitoring disclosures tied to public browsing and subscriber conversion.",
+          body: "OnlyClaw may also use operational monitoring and performance tooling to keep the platform stable and investigate failures. We do not use marketing or advertising cookies.",
         },
         {
           heading: "Managing preferences",
-          body: "Later revisions can explain regional consent handling, cookie preference tools, and browser-level controls in a concise user-friendly format.",
+          body: "You can manage cookie behavior through your browser settings. Disabling certain cookies may affect login and session functionality.",
         },
       ]}
       relatedLinks={publicComplianceLinks}

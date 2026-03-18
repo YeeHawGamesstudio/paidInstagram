@@ -7,14 +7,18 @@ import type { ReactNode } from "react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { MetricCard } from "@/components/shared/metric-card";
 import { RoleNavigation } from "@/components/shared/role-navigation";
-import { adminPlatformMetrics } from "@/lib/admin/demo-data";
 import { adminNavigation } from "@/lib/admin/navigation";
 
 type AdminShellProps = {
   children: ReactNode;
+  metrics: Array<{
+    label: string;
+    value: string;
+    detail: string;
+  }>;
 };
 
-export function AdminShell({ children }: AdminShellProps) {
+export function AdminShell({ children, metrics }: AdminShellProps) {
   const pathname = usePathname();
   const isDashboard = pathname === "/admin";
   const activeSection = adminNavigation.find((item) =>
@@ -40,30 +44,27 @@ export function AdminShell({ children }: AdminShellProps) {
                       <span className="rounded-full border border-[var(--color-admin)]/20 bg-[var(--color-admin)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-admin)]">
                         Admin operations
                       </span>
-                      <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70">
-                        Internal tooling
-                      </span>
                     </div>
                     <SignOutButton className="mt-3 h-8 px-3 text-[11px] sm:mt-0 sm:hidden" variant="destructive" />
 
                     <h1 className="mt-4 max-w-[12ch] font-display text-[2.4rem] leading-[0.95] sm:mt-5 sm:max-w-none sm:text-[2.8rem]">
-                      Structured oversight for platform safety
+                      Admin oversight for moderation and readiness
                     </h1>
                     <p className="mt-3 max-w-[34ch] text-sm leading-6 text-foreground/72 sm:max-w-2xl sm:text-[15px]">
-                      Review creators, users, reports, and queued content with a more utilitarian control surface that still fits the OnlyClaw premium product.
+                      Review reports, creator approvals, account restrictions, and operational readiness from one control surface.
                     </p>
                   </div>
 
                   <div className="rounded-[1.25rem] border border-white/12 bg-black/25 px-3.5 py-3 sm:rounded-[1.5rem] sm:px-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-admin)]">Shift status</p>
-                    <p className="mt-2 text-sm font-medium text-foreground">Queue stable with manual escalations pending</p>
-                    <p className="mt-1 text-xs leading-5 text-foreground/68">Use staging data carefully and confirm outcomes in the audit trail after each action.</p>
+                    <p className="mt-2 text-sm font-medium text-foreground">Manual moderation with audit-backed decisions</p>
+                    <p className="mt-1 text-xs leading-5 text-foreground/68">Leave a written note for every action and confirm the outcome in the audit log.</p>
                   </div>
                   <SignOutButton className="hidden h-8 px-3 text-[11px] sm:inline-flex" variant="destructive" />
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {adminPlatformMetrics.map((item) => (
+                  {metrics.map((item) => (
                     <MetricCard
                       key={item.label}
                       label={item.label}
@@ -102,7 +103,7 @@ export function AdminShell({ children }: AdminShellProps) {
                   <div className="min-w-0">
                     <h1 className="font-display text-[1.7rem] sm:text-[2rem]">Admin operations</h1>
                     <p className="mt-1 max-w-[34ch] text-sm leading-6 text-foreground/72 sm:max-w-none">
-                      Internal moderation, review, and account tooling.
+                      Moderation, review, account, and audit controls.
                     </p>
                   </div>
                   <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs uppercase tracking-[0.18em] text-muted-foreground sm:hidden">

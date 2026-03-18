@@ -22,25 +22,12 @@ import {
   getUserAdultAccessStatusLabel,
 } from "@/lib/compliance/scaffolding";
 
-function getTrustStateSummary(key: "approval" | "verification" | "adult") {
-  if (key === "approval") {
-    return "This is the strongest live trust signal on the page because the account is currently approved.";
-  }
-
-  if (key === "verification") {
-    return "This still needs follow-up. The status is real, but the deeper review workflow is not complete yet.";
-  }
-
-  return "Adult access is only self-attested right now, which is a trust-risk placeholder rather than a final safeguard.";
-}
 
 export default function CreatorCompliancePage() {
   return (
     <div className="grid gap-6">
       <CreatorPageHeader
-        eyebrow="Compliance"
-        title="Compliance and verification overview"
-        description="Review live trust signals, action-required compliance items, and the reporting links that still rely on scaffolding."
+        title="Compliance"
         actions={
           <div className="flex flex-wrap gap-3">
             <Button asChild>
@@ -53,28 +40,7 @@ export default function CreatorCompliancePage() {
         }
       />
 
-      <Card className="border-white/10 bg-white/[0.04] p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Trust workflow</p>
-        <h2 className="mt-2 font-display text-3xl">Separate live status from scaffolding</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-          Approval is the clearest live signal here. Verification, adult gating, and rights handling still contain partial
-          or placeholder workflow pieces, so the page now calls those out more directly.
-        </p>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Live enough today</p>
-            <p className="mt-2 text-sm text-foreground/85">Approval state and policy acceptance checkpoints are the strongest current trust signals.</p>
-          </div>
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Needs follow-up</p>
-            <p className="mt-2 text-sm text-foreground/85">Verification and rights workflows still need a fuller production path.</p>
-          </div>
-          <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Trust risk</p>
-            <p className="mt-2 text-sm text-foreground/85">Adult-content access still depends on self-attestation, not stronger verification.</p>
-          </div>
-        </div>
-      </Card>
+      
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card className="border-emerald-500/20 bg-emerald-500/10 p-5">
@@ -84,7 +50,6 @@ export default function CreatorCompliancePage() {
               {getCreatorApprovalStatusLabel(creatorComplianceSummary.approvalStatus)}
             </StatusBadge>
           </div>
-          <p className="mt-4 text-sm leading-6 text-emerald-100/85">{getTrustStateSummary("approval")}</p>
           <p className="mt-3 text-xs text-emerald-100/70">{creatorComplianceSummary.lastReviewLabel}</p>
         </Card>
 
@@ -95,8 +60,7 @@ export default function CreatorCompliancePage() {
               {getCreatorVerificationStatusLabel(creatorComplianceSummary.verificationStatus)}
             </StatusBadge>
           </div>
-          <p className="mt-4 text-sm leading-6 text-amber-100/85">{getTrustStateSummary("verification")}</p>
-          <p className="mt-3 text-xs text-amber-100/70">Best next step: review the verification lane and identify what still needs a real review path.</p>
+          
         </Card>
 
         <Card className="border-rose-500/20 bg-rose-500/10 p-5">
@@ -106,7 +70,6 @@ export default function CreatorCompliancePage() {
               {getUserAdultAccessStatusLabel(creatorComplianceSummary.adultAccessStatus)}
             </StatusBadge>
           </div>
-          <p className="mt-4 text-sm leading-6 text-rose-100/85">{getTrustStateSummary("adult")}</p>
           <p className="mt-3 text-xs text-rose-100/70">{creatorComplianceSummary.contentPolicyAcceptance}</p>
         </Card>
       </section>
@@ -130,10 +93,10 @@ export default function CreatorCompliancePage() {
                   </StatusBadge>
                   <span className="text-xs text-muted-foreground">
                     {item.status === "done"
-                      ? "Live enough for this slice"
+                      ? "Working today"
                       : item.status === "action_required"
                         ? "Needs workflow follow-up"
-                        : "Still placeholder"}
+                        : "Needs a fuller workflow"}
                   </span>
                 </div>
                 <p className="mt-3 font-semibold text-foreground">{item.label}</p>
@@ -150,7 +113,7 @@ export default function CreatorCompliancePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em]">Verification lane</p>
             </div>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Treat this as workflow scaffolding, not a fully live KYC or adjudication system.
+              Treat this as a verification review lane, not a fully live KYC or adjudication system yet.
             </p>
             <div className="mt-4 grid gap-3">
               {creatorVerificationMilestones.map((item) => (
@@ -169,13 +132,9 @@ export default function CreatorCompliancePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em]">Rights and reporting</p>
             </div>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              DMCA and abuse reporting entry points exist, but they still depend on placeholder inbox routing, evidence retention,
+              DMCA and abuse reporting entry points exist, but they still depend on stronger inbox routing, evidence retention,
               and legal response handling.
             </p>
-            <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-black/20 p-4 text-sm leading-6 text-muted-foreground">
-              Best next step: keep the public links visible, but route creators to the compliance workspace when they need to
-              understand what is actually live versus placeholder.
-            </div>
             <div className="mt-4 flex flex-col gap-3">
               <Button asChild variant="outline">
                 <Link href="/report?target=creator&subject=Creator%20studio">Open report page</Link>

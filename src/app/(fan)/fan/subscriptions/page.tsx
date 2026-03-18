@@ -20,24 +20,12 @@ function getSurfaceImageStyle(imageUrl?: string) {
 }
 
 function getSubscriptionNextStep(status: "ACTIVE" | "RENEWING_SOON" | "CANCELS_AT_PERIOD_END" | "PAUSED") {
-  if (status === "RENEWING_SOON") {
-    return "Renewal is coming up soon. Review billing and recent creator activity now.";
-  }
-
-  if (status === "CANCELS_AT_PERIOD_END") {
-    return "Access stays on until the current period ends, so catch up before it expires.";
-  }
-
-  if (status === "PAUSED") {
-    return "This membership is no longer active. Revisit the creator or billing history before resubscribing.";
-  }
-
-  return "Everything is active. Jump back into creator updates or messages from here.";
+  if (status === "RENEWING_SOON") return "Renewal coming up soon";
+  if (status === "CANCELS_AT_PERIOD_END") return "Ending soon -- renew?";
+  if (status === "PAUSED") return "Paused -- resubscribe?";
+  return "Active";
 }
 
-function getDiscoverySummary() {
-  return "Unlock feed posts, paid-drop previews, and creator inbox access with one membership.";
-}
 
 export default async function FanSubscriptionsPage() {
   const subscriptionData = await getFanSubscriptionsPageData();
@@ -45,9 +33,7 @@ export default async function FanSubscriptionsPage() {
   return (
     <div className="grid gap-4 sm:gap-5">
       <FanPageHeader
-        eyebrow="Subscriptions"
-        title="Manage premium access"
-        description="Track active memberships, buy new subscriptions, and watch premium creator access update across feed, inbox, and billing."
+        title="Subscriptions"
       />
 
       <section className="grid gap-3 sm:grid-cols-3">
@@ -57,7 +43,6 @@ export default async function FanSubscriptionsPage() {
             <span className="text-xs font-semibold uppercase tracking-[0.22em]">Active now</span>
           </div>
           <p className="mt-3 font-display text-4xl">{subscriptionData.activeCount}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Creators currently unlocked across feed and messages.</p>
         </Card>
         <Card className="border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           <div className="flex items-center gap-2 text-primary">
@@ -65,7 +50,6 @@ export default async function FanSubscriptionsPage() {
             <span className="text-xs font-semibold uppercase tracking-[0.22em]">Monthly total</span>
           </div>
           <p className="mt-3 font-display text-4xl">{formatAmount(subscriptionData.monthlyTotal, "usd")}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Current recurring spend before one-off paid message unlocks.</p>
         </Card>
         <Card className="border-white/10 bg-white/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
           <div className="flex items-center gap-2 text-primary">
@@ -73,7 +57,6 @@ export default async function FanSubscriptionsPage() {
             <span className="text-xs font-semibold uppercase tracking-[0.22em]">Attention</span>
           </div>
           <p className="mt-3 text-lg font-semibold text-foreground">{subscriptionData.renewalSoonCount} renewal soon</p>
-          <p className="mt-2 text-sm text-muted-foreground">Renewal timing is derived from stored subscription lifecycle records.</p>
         </Card>
       </section>
 
@@ -157,10 +140,10 @@ export default async function FanSubscriptionsPage() {
         ) : (
           <EmptyStateCard>
             <div className="grid gap-4">
-              <p>No memberships yet. When you start one, creator access, renewal timing, and quick actions will appear here.</p>
+              <p>No memberships yet. Browse creators and subscribe to start seeing your subscriptions here.</p>
               <div className="grid gap-2 sm:flex sm:flex-wrap">
                 <Button asChild className="w-full justify-center sm:w-auto">
-                  <Link href="/fan/billing">Open billing</Link>
+                  <Link href="/discover">Discover creators</Link>
                 </Button>
               </div>
             </div>
@@ -170,13 +153,7 @@ export default async function FanSubscriptionsPage() {
 
       {subscriptionData.availableCreators.length ? (
         <section className="grid gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Discover more</p>
-            <h2 className="mt-2 font-display text-3xl">Available subscriptions</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Browse creators you can unlock next. Memberships open their premium feed posts, inbox moments, and ongoing updates.
-            </p>
-          </div>
+          <h2 className="font-display text-3xl">Browse more creators</h2>
 
           <div className="grid gap-4 lg:grid-cols-2">
             {subscriptionData.availableCreators.map((creator) => (
@@ -211,7 +188,7 @@ export default async function FanSubscriptionsPage() {
                     <p className="mt-2 font-display text-3xl">
                       {formatAmount(creator.priceMonthlyCents, creator.currency)}/mo
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{getDiscoverySummary()}</p>
+                    
                   </div>
 
                   <div className="grid gap-3 sm:flex sm:flex-wrap">

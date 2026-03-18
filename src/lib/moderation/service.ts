@@ -8,12 +8,8 @@ import {
   SubscriptionStatus,
   type Prisma,
 } from "@/generated/prisma/client";
-import { recordAdminAction } from "@/lib/admin/audit";
+import { listRecentAdminActions, recordAdminAction } from "@/lib/admin/audit";
 import {
-  adminCreators as demoAdminCreators,
-  adminReports as demoAdminReports,
-  adminReviewQueue as demoAdminReviewQueue,
-  adminUsers as demoAdminUsers,
   type AdminCreatorRecord,
   type AdminReportRecord,
   type AdminReviewItem,
@@ -21,7 +17,6 @@ import {
 } from "@/lib/admin/demo-data";
 import { requireRole, requireViewer } from "@/lib/auth/viewer";
 import { hasActiveSubscriptionAccess } from "@/lib/billing/state";
-import { env } from "@/lib/config/env";
 import { formatCurrency, formatDateTimeLabel, formatMonthlyPrice, formatTimeAgo } from "@/lib/formatting";
 import { prisma } from "@/lib/prisma/client";
 import { RateLimitExceededError, enforceRateLimit } from "@/lib/security/rate-limit";
@@ -68,6 +63,9 @@ export type ModerationCreatorRecord = AdminCreatorRecord & {
   userId: string;
   slug: string;
   relatedNotes: RelatedAuditNote[];
+  canApprove: boolean;
+  canSuspend: boolean;
+  canRestore: boolean;
 };
 
 export type ModerationUserRecord = AdminUserRecord & {
@@ -77,6 +75,14 @@ export type ModerationUserRecord = AdminUserRecord & {
   lastSeenAt?: string;
   lastModeratedAt?: string;
   relatedNotes: RelatedAuditNote[];
+  canSuspend: boolean;
+  canRestore: boolean;
+};
+
+export type AdminOverviewMetric = {
+  label: string;
+  value: string;
+  detail: string;
 };
 
 type ReportReasonDefinition = {
@@ -552,63 +558,61 @@ export async function createModerationReport(input: {
 }
 
 export async function listAdminModerationReports(): Promise<ModerationReportRecord[]> {
-  try {
-    await requireRole("ADMIN");
+  await requireRole("ADMIN");
 
-    const reports = await prisma.report.findMany({
-      include: {
-        reporter: {
-          include: {
-            profile: true,
-          },
+  const reports = await prisma.report.findMany({
+    include: {
+      reporter: {
+        include: {
+          profile: true,
         },
-        reviewedBy: {
-          include: {
-            profile: true,
-          },
+      },
+      reviewedBy: {
+        include: {
+          profile: true,
         },
-        targetUser: {
-          include: {
-            profile: true,
-          },
+      },
+      targetUser: {
+        include: {
+          profile: true,
         },
-        targetCreatorProfile: {
-          include: {
-            user: {
-              include: {
-                profile: true,
-              },
+      },
+      targetCreatorProfile: {
+        include: {
+          user: {
+            include: {
+              profile: true,
             },
           },
         },
-        targetPost: {
-          include: {
-            creatorProfile: {
-              include: {
-                user: {
-                  include: {
-                    profile: true,
-                  },
+      },
+      targetPost: {
+        include: {
+          creatorProfile: {
+            include: {
+              user: {
+                include: {
+                  profile: true,
                 },
               },
             },
           },
         },
-        targetMessage: {
-          include: {
-            sender: {
-              include: {
-                profile: true,
-              },
+      },
+      targetMessage: {
+        include: {
+          sender: {
+            include: {
+              profile: true,
             },
-            conversation: {
-              include: {
-                creatorProfile: {
-                  include: {
-                    user: {
-                      include: {
-                        profile: true,
-                      },
+          },
+          conversation: {
+            include: {
+              creatorProfile: {
+                include: {
+                  user: {
+                    include: {
+                      profile: true,
                     },
                   },
                 },
@@ -617,354 +621,317 @@ export async function listAdminModerationReports(): Promise<ModerationReportReco
           },
         },
       },
-      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    });
+    },
+    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+  });
 
-    const reportIds = reports.map((report) => report.id);
-    const actionLogs = reportIds.length
-      ? await prisma.adminActionLog.findMany({
-          where: {
-            reportId: {
-              in: reportIds,
+  const reportIds = reports.map((report) => report.id);
+  const actionLogs = reportIds.length
+    ? await prisma.adminActionLog.findMany({
+        where: {
+          reportId: {
+            in: reportIds,
+          },
+        },
+        include: {
+          admin: {
+            include: {
+              profile: true,
             },
           },
-          include: {
-            admin: {
-              include: {
-                profile: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        })
-      : [];
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      })
+    : [];
 
-    const logsByReportId = new Map<string, ReturnType<typeof mapAuditNotes>>();
+  const logsByReportId = new Map<string, ReturnType<typeof mapAuditNotes>>();
 
-    for (const report of reports) {
-      const matchingLogs = actionLogs.filter((entry) => entry.reportId === report.id);
-      logsByReportId.set(report.id, mapAuditNotes(matchingLogs));
-    }
-
-    return reports.map((report) => {
-      const parsedDetails = parseStructuredDetails(report.details);
-      const severity = resolveReportSeverity(report.reason);
-      const relatedNotes = logsByReportId.get(report.id) ?? [];
-
-      return {
-        id: report.id,
-        severity,
-        status: report.status,
-        targetType: report.targetType,
-        targetLabel: buildReportTargetLabel(report, parsedDetails),
-        reason: report.reason,
-        reporterLabel: getDisplayName(report.reporter),
-        openedAt: formatTimeAgo(report.createdAt),
-        assignee: report.reviewedBy ? getDisplayName(report.reviewedBy) : "Unassigned",
-        actionState: buildReportActionState(report, relatedNotes[0], severity),
-        subject: parsedDetails.subject,
-        sourceUrl: parsedDetails.sourceUrl,
-        targetUserId:
-          report.targetUserId ??
-          report.targetMessage?.senderId ??
-          report.targetCreatorProfile?.userId ??
-          report.targetPost?.creatorProfile.userId ??
-          undefined,
-        targetCreatorProfileId:
-          report.targetCreatorProfileId ??
-          report.targetPost?.creatorProfileId ??
-          report.targetMessage?.conversation.creatorProfileId ??
-          undefined,
-        relatedNotes,
-        canTakeDownPost: Boolean(report.targetPostId),
-        canSuspendCreator: Boolean(
-          report.targetCreatorProfileId ??
-            report.targetPost?.creatorProfileId ??
-            report.targetMessage?.conversation.creatorProfileId,
-        ),
-        canSuspendUser: Boolean(
-          report.targetUserId ??
-            report.targetMessage?.senderId ??
-            report.targetCreatorProfile?.userId ??
-            report.targetPost?.creatorProfile.userId,
-        ),
-      };
-    });
-  } catch (error) {
-    if (!env.allowDemoDataFallback) {
-      throw error;
-    }
-
-    return demoAdminReports.map((report) => ({
-      ...report,
-      relatedNotes: [],
-      canTakeDownPost: report.targetType === ReportTargetType.POST,
-      canSuspendCreator: report.targetType !== ReportTargetType.USER,
-      canSuspendUser: true,
-    }));
+  for (const report of reports) {
+    const matchingLogs = actionLogs.filter((entry) => entry.reportId === report.id);
+    logsByReportId.set(report.id, mapAuditNotes(matchingLogs));
   }
+
+  return reports.map((report) => {
+    const parsedDetails = parseStructuredDetails(report.details);
+    const severity = resolveReportSeverity(report.reason);
+    const relatedNotes = logsByReportId.get(report.id) ?? [];
+    const targetCreator =
+      report.targetCreatorProfile ?? report.targetPost?.creatorProfile ?? report.targetMessage?.conversation.creatorProfile;
+    const targetUser =
+      report.targetUser ?? report.targetMessage?.sender ?? report.targetCreatorProfile?.user ?? report.targetPost?.creatorProfile.user;
+
+    return {
+      id: report.id,
+      severity,
+      status: report.status,
+      targetType: report.targetType,
+      targetLabel: buildReportTargetLabel(report, parsedDetails),
+      reason: report.reason,
+      reporterLabel: getDisplayName(report.reporter),
+      openedAt: formatTimeAgo(report.createdAt),
+      assignee: report.reviewedBy ? getDisplayName(report.reviewedBy) : "Unassigned",
+      actionState: buildReportActionState(report, relatedNotes[0], severity),
+      subject: parsedDetails.subject,
+      sourceUrl: parsedDetails.sourceUrl,
+      targetUserId: targetUser?.id,
+      targetCreatorProfileId: targetCreator?.id,
+      relatedNotes,
+      canTakeDownPost: Boolean(report.targetPostId && report.targetPost?.isPublished),
+      canSuspendCreator: Boolean(targetCreator && targetCreator.state !== CreatorState.SUSPENDED),
+      canSuspendUser: Boolean(targetUser?.isActive),
+    };
+  });
 }
 
 export async function listAdminModerationReviewQueue(): Promise<ModerationReviewQueueItem[]> {
-  try {
-    const reports = await listAdminModerationReports();
+  const reports = await listAdminModerationReports();
 
-    return reports
-      .filter((report) => report.targetType !== ReportTargetType.USER)
-      .map((report) => {
-        const queue: AdminReviewItem["queue"] =
-          report.targetType === ReportTargetType.MESSAGE
-            ? "message"
-            : report.targetType === ReportTargetType.POST
-              ? "post"
-              : "profile";
-        const riskBand: ReviewRiskBand =
-          report.severity === "critical" || report.severity === "high"
-            ? "high"
-            : report.severity === "medium"
-              ? "medium"
-              : "low";
+  return reports
+    .filter((report) => report.targetType !== ReportTargetType.USER)
+    .map((report) => {
+      const queue: AdminReviewItem["queue"] =
+        report.targetType === ReportTargetType.MESSAGE
+          ? "message"
+          : report.targetType === ReportTargetType.POST
+            ? "post"
+            : "profile";
+      const riskBand: ReviewRiskBand =
+        report.severity === "critical" || report.severity === "high"
+          ? "high"
+          : report.severity === "medium"
+            ? "medium"
+            : "low";
 
-        return {
-          reportId: report.id,
-          id: `review-${report.id}`,
-          queue,
-          creatorLabel: report.targetLabel,
-          summary: report.reason,
-          submittedAt: report.openedAt,
-          flags: [
-            `${report.severity} severity`,
-            report.subject ? `subject: ${report.subject}` : `${getReportTargetTypeLabel(report.targetType)} target`,
-          ],
-          riskBand,
-          actionState: report.actionState,
-          status: report.status,
-          resolutionHref: report.sourceUrl,
-          targetUserId: report.targetUserId,
-          targetCreatorProfileId: report.targetCreatorProfileId,
-          relatedNotes: report.relatedNotes,
-        };
-      })
-      .sort((left, right) => {
-        const riskOrder: Record<ReviewRiskBand, number> = { high: 0, medium: 1, low: 2 };
-        return riskOrder[left.riskBand] - riskOrder[right.riskBand];
-      });
-  } catch (error) {
-    if (!env.allowDemoDataFallback) {
-      throw error;
-    }
-
-    return demoAdminReviewQueue.map((item) => ({
-      ...item,
-      reportId: item.id,
-      status: ReportStatus.OPEN,
-      resolutionHref: undefined,
-      targetUserId: undefined,
-      targetCreatorProfileId: undefined,
-      relatedNotes: [],
-    }));
-  }
+      return {
+        reportId: report.id,
+        id: `review-${report.id}`,
+        queue,
+        creatorLabel: report.targetLabel,
+        summary: report.reason,
+        submittedAt: report.openedAt,
+        flags: [
+          `${report.severity} severity`,
+          report.subject ? `subject: ${report.subject}` : `${getReportTargetTypeLabel(report.targetType)} target`,
+        ],
+        riskBand,
+        actionState: report.actionState,
+        status: report.status,
+        resolutionHref: report.sourceUrl,
+        targetUserId: report.targetUserId,
+        targetCreatorProfileId: report.targetCreatorProfileId,
+        relatedNotes: report.relatedNotes,
+      };
+    })
+    .sort((left, right) => {
+      const riskOrder: Record<ReviewRiskBand, number> = { high: 0, medium: 1, low: 2 };
+      return riskOrder[left.riskBand] - riskOrder[right.riskBand];
+    });
 }
 
 export async function listAdminModerationCreators(): Promise<ModerationCreatorRecord[]> {
-  try {
-    await requireRole("ADMIN");
+  await requireRole("ADMIN");
 
-    const creators = await prisma.creatorProfile.findMany({
-      include: {
-        user: {
-          include: {
-            profile: true,
-          },
-        },
-        subscriptions: true,
-        reports: {
-          where: {
-            status: ReportStatus.OPEN,
-          },
+  const creators = await prisma.creatorProfile.findMany({
+    include: {
+      user: {
+        include: {
+          profile: true,
         },
       },
-      orderBy: [{ state: "asc" }, { updatedAt: "desc" }],
+      subscriptions: true,
+      reports: {
+        where: {
+          status: ReportStatus.OPEN,
+        },
+      },
+    },
+    orderBy: [{ state: "asc" }, { updatedAt: "desc" }],
+  });
+
+  const actionLogs = creators.length
+    ? await prisma.adminActionLog.findMany({
+        where: {
+          targetUserId: {
+            in: creators.map((creator) => creator.userId),
+          },
+        },
+        include: {
+          admin: {
+            include: {
+              profile: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      })
+    : [];
+
+  return creators
+    .filter((creator) => creator.user.profile)
+    .map((creator) => {
+      const relatedNotes = mapAuditNotes(actionLogs.filter((entry) => entry.targetUserId === creator.userId));
+      const activeSubscribers = creator.subscriptions.filter(
+        (subscription) => subscription.status === SubscriptionStatus.ACTIVE && hasActiveSubscriptionAccess(subscription),
+      ).length;
+
+      return {
+        id: creator.id,
+        userId: creator.userId,
+        slug: creator.slug,
+        displayName: creator.user.profile!.displayName,
+        handle: getHandle(creator.user.profile!.username),
+        state: creator.state,
+        approvalStatus: creator.approvalStatus,
+        verificationStatus: creator.verificationStatus,
+        category: creator.headline ?? "Premium creator",
+        pricingLabel: formatMonthlyPrice(creator.subscriptionPriceCents, creator.currency),
+        subscribers: activeSubscribers,
+        reportsOpen: creator.reports.length,
+        lastReview: creator.suspendedAt
+          ? `Suspended ${formatTimeAgo(creator.suspendedAt)}`
+          : creator.approvedAt
+            ? `Approved ${formatTimeAgo(creator.approvedAt)}`
+            : `Updated ${formatTimeAgo(creator.updatedAt)}`,
+        moderationVisibility:
+          creator.state === CreatorState.SUSPENDED
+            ? "Discovery hidden and premium catalog should stay unavailable while the case is open."
+            : creator.state === CreatorState.APPROVED
+              ? "Visible in public discovery and eligible for subscriber conversion."
+              : "Hidden from public discovery until moderation approval is complete.",
+        actionState:
+          relatedNotes[0]?.notes ??
+          (creator.state === CreatorState.SUSPENDED
+            ? "Suspension remains active until a moderator restores the creator."
+            : creator.state === CreatorState.APPROVED
+              ? "Creator is in a live state with moderation monitoring."
+              : "Awaiting admin approval or policy fixes."),
+        relatedNotes,
+        canApprove: creator.state === CreatorState.PENDING,
+        canSuspend: creator.state !== CreatorState.SUSPENDED,
+        canRestore: creator.state === CreatorState.SUSPENDED,
+      } satisfies ModerationCreatorRecord;
     });
-
-    const actionLogs = creators.length
-      ? await prisma.adminActionLog.findMany({
-          where: {
-            targetUserId: {
-              in: creators.map((creator) => creator.userId),
-            },
-          },
-          include: {
-            admin: {
-              include: {
-                profile: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        })
-      : [];
-
-    return creators
-      .filter((creator) => creator.user.profile)
-      .map((creator) => {
-        const relatedNotes = mapAuditNotes(actionLogs.filter((entry) => entry.targetUserId === creator.userId));
-        const activeSubscribers = creator.subscriptions.filter(
-          (subscription) =>
-            subscription.status === SubscriptionStatus.ACTIVE && hasActiveSubscriptionAccess(subscription),
-        ).length;
-
-        return {
-          id: creator.id,
-          userId: creator.userId,
-          slug: creator.slug,
-          displayName: creator.user.profile!.displayName,
-          handle: getHandle(creator.user.profile!.username),
-          state: creator.state,
-          approvalStatus: creator.approvalStatus,
-          verificationStatus: creator.verificationStatus,
-          category: creator.headline ?? "Premium creator",
-          pricingLabel: formatMonthlyPrice(creator.subscriptionPriceCents, creator.currency),
-          subscribers: activeSubscribers,
-          reportsOpen: creator.reports.length,
-          lastReview: creator.suspendedAt
-            ? `Suspended ${formatTimeAgo(creator.suspendedAt)}`
-            : creator.approvedAt
-              ? `Approved ${formatTimeAgo(creator.approvedAt)}`
-              : `Updated ${formatTimeAgo(creator.updatedAt)}`,
-          moderationVisibility:
-            creator.state === CreatorState.SUSPENDED
-              ? "Discovery hidden and premium catalog should stay unavailable while the case is open."
-              : creator.state === CreatorState.APPROVED
-                ? "Visible in public discovery and eligible for subscriber conversion."
-                : "Hidden from public discovery until moderation approval is complete.",
-          actionState:
-            relatedNotes[0]?.notes ??
-            (creator.state === CreatorState.SUSPENDED
-              ? "Suspension remains active until a moderator restores the creator."
-              : creator.state === CreatorState.APPROVED
-                ? "Creator is in a live state with moderation monitoring."
-                : "Awaiting admin approval or policy fixes."),
-          relatedNotes,
-        } satisfies ModerationCreatorRecord;
-      });
-  } catch (error) {
-    if (!env.allowDemoDataFallback) {
-      throw error;
-    }
-
-    return demoAdminCreators.map((creator) => ({
-      ...creator,
-      userId: creator.id,
-      slug: creator.id,
-      relatedNotes: [],
-    }));
-  }
 }
 
 export async function listAdminModerationUsers(): Promise<ModerationUserRecord[]> {
-  try {
-    await requireRole("ADMIN");
+  await requireRole("ADMIN");
 
-    const users = await prisma.user.findMany({
-      include: {
-        profile: true,
-        creatorProfile: true,
-        reportsReceived: {
-          where: {
-            status: ReportStatus.OPEN,
+  const users = await prisma.user.findMany({
+    include: {
+      profile: true,
+      creatorProfile: true,
+      reportsReceived: {
+        where: {
+          status: ReportStatus.OPEN,
+        },
+      },
+      transactions: true,
+    },
+    orderBy: [{ isActive: "asc" }, { updatedAt: "desc" }],
+  });
+
+  const actionLogs = users.length
+    ? await prisma.adminActionLog.findMany({
+        where: {
+          targetUserId: {
+            in: users.map((user) => user.id),
           },
         },
-        transactions: true,
-      },
-      orderBy: [{ isActive: "asc" }, { updatedAt: "desc" }],
-    });
-
-    const actionLogs = users.length
-      ? await prisma.adminActionLog.findMany({
-          where: {
-            targetUserId: {
-              in: users.map((user) => user.id),
+        include: {
+          admin: {
+            include: {
+              profile: true,
             },
           },
-          include: {
-            admin: {
-              include: {
-                profile: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        })
-      : [];
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      })
+    : [];
 
-    return users.map((user) => {
-      const relatedNotes = mapAuditNotes(actionLogs.filter((entry) => entry.targetUserId === user.id));
-      const totalSpendCents = user.transactions.reduce((sum, transaction) => sum + transaction.amountCents, 0);
-      const openReports = user.reportsReceived.length;
-      const riskState = !user.isActive ? "restricted" : openReports > 0 || relatedNotes.length > 0 ? "watch" : "normal";
+  return users.map((user) => {
+    const relatedNotes = mapAuditNotes(actionLogs.filter((entry) => entry.targetUserId === user.id));
+    const totalSpendCents = user.transactions.reduce((sum, transaction) => sum + transaction.amountCents, 0);
+    const openReports = user.reportsReceived.length;
+    const riskState = !user.isActive ? "restricted" : openReports > 0 || relatedNotes.length > 0 ? "watch" : "normal";
 
-      return {
-        id: user.id,
-        userId: user.id,
-        isActive: user.isActive,
-        displayName: user.profile?.displayName ?? user.email,
-        handle: getHandle(user.profile?.username),
-        role: user.role,
-        lifecycle: !user.isActive
-          ? "Sign-in disabled pending moderation resolution"
-          : user.role === "CREATOR" && user.creatorProfile
-            ? `Creator account linked to ${user.creatorProfile.slug}`
-            : "Account active on platform",
-        adultAccessStatus: user.adultAccessStatus,
-        openReports,
-        spendLabel:
-          user.role === "FAN"
-            ? totalSpendCents > 0
-              ? `${formatCurrency(totalSpendCents, "usd")} lifetime receipts tracked`
-              : "No successful receipts recorded yet"
-            : "Creator payouts and cash-out review are separate controls",
-        riskState,
-        lastSeen: formatTimeAgo(user.updatedAt),
-        lastSeenAt: user.updatedAt.toISOString(),
-        lastModeratedAt: relatedNotes[0]?.createdAt,
-        actionState:
-          relatedNotes[0]?.notes ??
-          (!user.isActive
-            ? "Account access is disabled until a moderator restores it."
-            : openReports > 0
-              ? `${openReports} open report${openReports === 1 ? "" : "s"} need follow-up.`
-              : "No active moderation controls."),
-        relatedNotes,
-      } satisfies ModerationUserRecord;
-    });
-  } catch (error) {
-    if (!env.allowDemoDataFallback) {
-      throw error;
-    }
+    return {
+      id: user.id,
+      userId: user.id,
+      isActive: user.isActive,
+      displayName: user.profile?.displayName ?? user.email,
+      handle: getHandle(user.profile?.username),
+      role: user.role,
+      lifecycle: !user.isActive
+        ? "Sign-in disabled pending moderation resolution"
+        : user.role === "CREATOR" && user.creatorProfile
+          ? `Creator account linked to ${user.creatorProfile.slug}`
+          : "Account active on platform",
+      adultAccessStatus: user.adultAccessStatus,
+      openReports,
+      spendLabel:
+        user.role === "FAN"
+          ? totalSpendCents > 0
+            ? `${formatCurrency(totalSpendCents, "usd")} lifetime receipts tracked`
+            : "No successful receipts recorded yet"
+          : "Creator payouts and cash-out review are separate controls",
+      riskState,
+      lastSeen: formatTimeAgo(user.updatedAt),
+      lastSeenAt: user.updatedAt.toISOString(),
+      lastModeratedAt: relatedNotes[0]?.createdAt,
+      actionState:
+        relatedNotes[0]?.notes ??
+        (!user.isActive
+          ? "Account access is disabled until a moderator restores it."
+          : openReports > 0
+            ? `${openReports} open report${openReports === 1 ? "" : "s"} need follow-up.`
+            : "No active moderation controls."),
+      relatedNotes,
+      canSuspend: user.isActive,
+      canRestore: !user.isActive,
+    } satisfies ModerationUserRecord;
+  });
+}
 
-    return demoAdminUsers.map((user, index) => {
-      const lastSeenAt = new Date(Date.now() - index * 1000 * 60 * 30).toISOString();
-      const lastModeratedAt =
-        user.riskState === "normal" ? undefined : new Date(Date.now() - (index + 1) * 1000 * 60 * 60).toISOString();
+export async function getAdminOverviewMetrics(): Promise<AdminOverviewMetric[]> {
+  const [reports, creators, recentActions] = await Promise.all([
+    listAdminModerationReports(),
+    listAdminModerationCreators(),
+    listRecentAdminActions(25),
+  ]);
 
-      return {
-        ...user,
-        userId: user.id,
-        isActive: user.riskState !== "restricted",
-        openReports: user.riskState === "watch" ? 1 : user.riskState === "restricted" ? 2 : 0,
-        lastSeenAt,
-        lastModeratedAt,
-        relatedNotes: [],
-      } satisfies ModerationUserRecord;
-    });
-  }
+  const openReports = reports.filter((report) => report.status === ReportStatus.OPEN);
+  const pendingCreators = creators.filter((creator) => creator.state === CreatorState.PENDING);
+  const suspendedCreators = creators.filter((creator) => creator.state === CreatorState.SUSPENDED);
+  const notedActions = recentActions.filter((entry) => entry.hasNotes).length;
+
+  return [
+    {
+      label: "Open reports",
+      value: String(openReports.length),
+      detail: openReports[0]?.actionState ?? "No reports are waiting right now.",
+    },
+    {
+      label: "Creator decisions",
+      value: String(pendingCreators.length),
+      detail: pendingCreators[0]?.actionState ?? "No creators are waiting on approval.",
+    },
+    {
+      label: "Suspended creators",
+      value: String(suspendedCreators.length),
+      detail: suspendedCreators[0]?.actionState ?? "No creators are suspended right now.",
+    },
+    {
+      label: "Audit notes",
+      value: String(notedActions),
+      detail: notedActions ? "Recent admin actions include written moderator notes." : "No recent moderator notes captured.",
+    },
+  ];
 }
 
 async function getAdminActor() {
@@ -1057,6 +1024,10 @@ export async function takeDownPostFromReport(input: {
     throw new Error("This report does not point to a post that can be taken down.");
   }
 
+  if (!report.targetPost.isPublished) {
+    throw new Error("This post is already removed from public visibility.");
+  }
+
   await prisma.$transaction([
     prisma.post.update({
       where: {
@@ -1118,6 +1089,22 @@ export async function updateCreatorModerationState(input: {
 
   if (!creator) {
     throw new Error("Creator not found.");
+  }
+
+  if (input.action === "APPROVE" && creator.state === CreatorState.APPROVED) {
+    throw new Error("Creator is already approved.");
+  }
+
+  if (input.action === "APPROVE" && creator.state === CreatorState.SUSPENDED) {
+    throw new Error("Restore the creator instead of approving a suspended account.");
+  }
+
+  if (input.action === "SUSPEND" && creator.state === CreatorState.SUSPENDED) {
+    throw new Error("Creator is already suspended.");
+  }
+
+  if (input.action === "RESTORE" && creator.state !== CreatorState.SUSPENDED) {
+    throw new Error("Only suspended creators can be restored.");
   }
 
   const data: Prisma.CreatorProfileUpdateInput =
@@ -1199,6 +1186,14 @@ export async function updateUserModerationState(input: {
 
   if (!user) {
     throw new Error("User not found.");
+  }
+
+  if (input.action === "SUSPEND" && !user.isActive) {
+    throw new Error("User is already suspended.");
+  }
+
+  if (input.action === "RESTORE" && user.isActive) {
+    throw new Error("User access is already active.");
   }
 
   await prisma.user.update({

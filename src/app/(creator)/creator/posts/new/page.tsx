@@ -10,7 +10,7 @@ export default function CreatorNewPostPage() {
       <CreatorPageHeader
         eyebrow="New post"
         title="Draft a new post"
-        description="Build a public teaser or subscriber-only post, review the preview, and test the form without live publishing."
+        description="Build a text-only public teaser or subscriber-only post, review how it will appear, and prepare it for publishing."
         actions={
           <Button asChild variant="outline">
             <Link href="/creator/posts">Back to posts</Link>

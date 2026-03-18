@@ -21,7 +21,7 @@ export default function DiscoverCreatorsPage() {
         label: "Starting from",
         value: `$${Math.min(...demoCreators.map((creator) => creator.priceMonthlyCents / 100)).toFixed(0)}`,
       },
-      { label: "Premium categories", value: "03" },
+      { label: "Categories", value: String(new Set(demoCreators.map((c) => c.category)).size).padStart(2, "0") },
     ],
     [],
   );
@@ -30,12 +30,7 @@ export default function DiscoverCreatorsPage() {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <Card className="border-white/10 bg-[radial-gradient(circle_at_top,_rgba(201,169,110,0.14),_transparent_20rem),linear-gradient(180deg,_rgba(20,20,24,0.98)_0%,_rgba(11,11,14,0.96)_100%)] p-6 sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Discover creators</p>
-          <h1 className="mt-3 max-w-3xl font-display text-[3.25rem] leading-none sm:text-6xl">Curated profiles with a premium mobile feel.</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            Browse creator profiles, compare monthly pricing, and review the public-to-premium journey fans will move through
-            across discovery and subscription surfaces.
-          </p>
+          <h1 className="max-w-3xl font-display text-[3.25rem] leading-none sm:text-6xl">The roster</h1>
         </Card>
 
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
@@ -54,10 +49,7 @@ export default function DiscoverCreatorsPage() {
       </section>
 
       <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.26em] text-primary/80">Browse mode</p>
-          <h2 className="mt-2 font-display text-3xl">Switch between card grid and editorial list.</h2>
-        </div>
+        <div />
 
         <div className="inline-flex w-full rounded-full border border-white/10 bg-white/[0.03] p-1 sm:w-auto">
           <Button

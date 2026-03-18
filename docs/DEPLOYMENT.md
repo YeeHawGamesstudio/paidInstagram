@@ -49,7 +49,7 @@ Before deploying, confirm:
 4. `MEDIA_SIGNING_SECRET` is set
 5. staging and production do not enable demo auth
 6. staging and production do not enable demo data fallback
-7. production does not use the mock billing provider
+7. staging may use the mock billing provider for simulated beta purchases, but production must not
 8. database schema is up to date
 9. `/api/health` is monitored by the hosting platform
 
@@ -76,7 +76,10 @@ After deployment:
 5. verify fan signup and login succeed
 6. verify a creator account can sign in but is redirected to the pending-access page until approved
 7. load a protected route and verify it behaves correctly for authenticated access
-8. if billing is enabled, verify webhook delivery and logging in the target environment
+8. if staging uses simulated billing, verify mock purchase, unlock, and cancellation flows in the target environment
+9. if production billing is enabled, verify webhook delivery and logging in the target environment
+
+For a limited beta launch, use `docs/BETA_LAUNCH_RUNBOOK.md` to turn these checks into the live launch sequence and named-owner procedure.
 
 ## Rollback And Recovery Notes
 
@@ -90,6 +93,8 @@ Operationally, rollback should include:
 - reviewing logs for recurring startup or dependency failures
 
 If a database restore is ever required, ensure media storage and database state remain aligned.
+
+Operationally, the rollback owner named in `docs/BETA_LAUNCH_RUNBOOK.md` should be identified before traffic is opened.
 
 ## Infrastructure Still Required Around The App
 

@@ -217,7 +217,7 @@ export default async function AdminReviewPage({ searchParams }: AdminReviewPageP
                           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Queue summary</p>
                         </div>
                         <p className="mt-3 text-sm leading-6 text-foreground/68">
-                          Review this item, leave a note, then clear or escalate it from the action rail.
+                          Review this item, leave a note, then record the exact moderation outcome from the action rail.
                         </p>
                       </div>
                     </div>
@@ -244,29 +244,39 @@ export default async function AdminReviewPage({ searchParams }: AdminReviewPageP
                                   Mark reviewed
                                 </Button>
                                 <Button className="w-full" size="sm" name="status" value="RESOLVED">
-                                  Clear queue
+                                  Resolve and close item
                                 </Button>
                               </div>
                             </div>
                           </form>
 
                           {item.queue === "post" ? (
-                            <form action={takeDownReportedPostAction} className="rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
+                            <form action={takeDownReportedPostAction} className="grid gap-3 rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
                               <input type="hidden" name="reportId" value={item.reportId} />
-                              <input type="hidden" name="notes" value="Post removed from the content review queue after moderation review." />
-                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Additional action</p>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Take down reported post</p>
+                              <Textarea
+                                required
+                                name="notes"
+                                className="min-h-20"
+                                placeholder="Explain why the reported post is being removed."
+                              />
                               <Button size="sm" variant="outline" className="mt-3 w-full">
-                                Restrict visibility
+                                Remove post from public visibility
                               </Button>
                             </form>
                           ) : null}
 
                           {item.targetCreatorProfileId ? (
-                            <form action={updateCreatorModerationStateAction} className="rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
+                            <form action={updateCreatorModerationStateAction} className="grid gap-3 rounded-[1.5rem] border border-white/12 bg-white/[0.045] p-3.5 sm:p-4">
                               <input type="hidden" name="creatorProfileId" value={item.targetCreatorProfileId} />
                               <input type="hidden" name="reportId" value={item.reportId} />
-                              <input type="hidden" name="notes" value="Creator suspended from the content review queue pending trust-and-safety follow-up." />
-                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Additional action</p>
+                              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Suspend creator account</p>
+                              <Textarea
+                                required
+                                name="notes"
+                                className="min-h-20"
+                                placeholder="Explain why this creator account is being suspended."
+                              />
                               <Button size="sm" variant="outline" className="mt-3 w-full" name="action" value="SUSPEND">
                                 Suspend creator
                               </Button>

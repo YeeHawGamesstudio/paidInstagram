@@ -10,7 +10,7 @@ export default function PrivacyPage() {
 
   return (
     <LegalPage
-      eyebrow="Legal placeholder"
+      eyebrow="Beta privacy"
       title={document.title}
       description={document.description}
       sections={document.sections}

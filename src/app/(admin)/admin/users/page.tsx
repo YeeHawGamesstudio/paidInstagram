@@ -11,7 +11,6 @@ import { MetricCard } from "@/components/shared/metric-card";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getRoleLabel } from "@/lib/admin/demo-data";
 import {
   getAdminUserAdultAccessBadgeLabel,
   getAdminUserAdultAccessTone,
@@ -46,6 +45,18 @@ function normalizeSort(value: string | undefined): UserSort {
 
 function timestamp(value: string | undefined) {
   return value ? new Date(value).getTime() : 0;
+}
+
+function getRoleLabel(role: ModerationUserRecord["role"]) {
+  if (role === "ADMIN") {
+    return "Admin";
+  }
+
+  if (role === "CREATOR") {
+    return "Creator";
+  }
+
+  return "Fan";
 }
 
 function sortUsers(users: ModerationUserRecord[], sort: UserSort) {
@@ -267,12 +278,9 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
               const isSelected = selectedUser?.id === user.id;
               const reviewHref = buildUsersHref(currentQuery, { selected: user.id });
               const closeHref = buildUsersHref(currentQuery, { selected: undefined });
-              const primaryAction = user.isActive
+              const primaryAction = user.canSuspend
                 ? { label: "Suspend account", pendingLabel: "Suspending account...", value: "SUSPEND" }
                 : { label: "Restore account", pendingLabel: "Restoring account...", value: "RESTORE" };
-              const secondaryAction = user.isActive
-                ? { label: "Restore account", pendingLabel: "Restoring account...", value: "RESTORE" }
-                : { label: "Suspend account", pendingLabel: "Suspending account...", value: "SUSPEND" };
 
               return (
                 <div
@@ -377,7 +385,6 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                         formAction={updateUserModerationStateAction}
                         hiddenFields={<input type="hidden" name="userId" value={user.userId} />}
                         primaryAction={primaryAction}
-                        secondaryAction={secondaryAction}
                       />
                     ) : null}
                   </div>

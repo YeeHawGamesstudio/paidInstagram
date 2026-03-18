@@ -140,7 +140,7 @@ export async function takeDownReportedPostAction(formData: FormData) {
 
   const result = await takeDownPostFromReport({
     reportId,
-    notes: formData.get("notes")?.toString(),
+    notes: requireModeratorNote(formData),
   });
 
   revalidateAdminModerationPaths();

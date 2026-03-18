@@ -145,15 +145,21 @@ export default async function AdminCreatorsPage() {
                     <div className="rounded-[1.25rem] border border-white/10 bg-black/20 p-3">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Action</p>
                       <div className="mt-3 grid gap-2">
-                        <Button className="w-full" size="sm" name="action" value="APPROVE">
-                          Approve creator
-                        </Button>
-                        <Button className="w-full" size="sm" variant="outline" name="action" value="SUSPEND">
-                          Suspend creator
-                        </Button>
-                        <Button className="w-full" size="sm" variant="ghost" name="action" value="RESTORE">
-                          Restore creator
-                        </Button>
+                        {creator.canApprove ? (
+                          <Button className="w-full" size="sm" name="action" value="APPROVE">
+                            Approve creator
+                          </Button>
+                        ) : null}
+                        {creator.canSuspend ? (
+                          <Button className="w-full" size="sm" variant="outline" name="action" value="SUSPEND">
+                            Suspend creator
+                          </Button>
+                        ) : null}
+                        {creator.canRestore ? (
+                          <Button className="w-full" size="sm" variant="secondary" name="action" value="RESTORE">
+                            Restore creator
+                          </Button>
+                        ) : null}
                       </div>
                     </div>
                   </form>

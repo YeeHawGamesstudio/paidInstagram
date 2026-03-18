@@ -10,7 +10,7 @@ export default function AcceptableUsePage() {
 
   return (
     <LegalPage
-      eyebrow="Policy placeholder"
+      eyebrow="Beta acceptable use"
       title={document.title}
       description={document.description}
       sections={document.sections}

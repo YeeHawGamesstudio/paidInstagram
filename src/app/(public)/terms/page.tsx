@@ -10,7 +10,7 @@ export default function TermsPage() {
 
   return (
     <LegalPage
-      eyebrow="Legal placeholder"
+      eyebrow="Beta terms"
       title={document.title}
       description={document.description}
       sections={document.sections}

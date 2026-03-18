@@ -56,6 +56,16 @@ When a user reports an operational failure:
 5. If billing-related, inspect webhook and billing action logs first.
 6. If media-related, inspect media denial and upstream failure logs first.
 
+For staging beta:
+
+- simulated memberships and unlocks may appear as successful `mock` billing activity
+- treat those flows as product validation, not real financial events
+
+For admin moderation and creator-approval process details:
+
+- use `docs/ADMIN_OPERATIONS_RUNBOOK.md` as the operating procedure for provisioning, approvals, report handling, escalation, and audit-note quality
+- use `/admin` and `GET /api/health` together before assuming a product issue is isolated to one record or queue
+
 ## Backup And Restore Assumptions
 
 Backup and restore are infrastructure responsibilities, but the application assumes they exist.
@@ -81,6 +91,9 @@ Before calling the system production-ready, confirm:
 3. demo auth and demo data fallback are disabled
 4. `ALLOWED_MEDIA_HOSTS` is set for real media origins
 5. billing is either intentionally unavailable or backed by a real provider
-6. fan signup, fan login, and creator pending-access routing have been validated
-7. logs and `/api/health` are connected to monitoring and alerting
-8. database backup and restore ownership is defined
+6. if staging beta uses simulated billing, the team understands that `mock` purchases are expected there and nowhere else
+7. fan signup, fan login, and creator pending-access routing have been validated
+8. logs and `/api/health` are connected to monitoring and alerting
+9. database backup and restore ownership is defined
+
+For the first real beta launch window, use `docs/BETA_LAUNCH_RUNBOOK.md` for named owners, smoke-test order, monitoring expectations, and rollback handling.

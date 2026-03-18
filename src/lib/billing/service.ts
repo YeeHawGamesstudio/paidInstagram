@@ -347,7 +347,7 @@ export async function purchaseCreatorSubscription(
       creatorSlug,
       creatorName: creator.user.profile.displayName,
       conversationId: result.conversationId,
-      message: `${creator.user.profile.displayName} is now unlocked for this fan account.`,
+      message: `${creator.user.profile.displayName} membership is active now.`,
     };
   }
 
@@ -358,7 +358,7 @@ export async function purchaseCreatorSubscription(
       creatorName: creator.user.profile.displayName,
       conversationId: creator.conversations[0]?.id,
       message:
-        "Payment is pending confirmation. Access will unlock after the provider confirms the membership.",
+        "Billing is still confirming this membership. Access will update automatically once that finishes.",
     };
   }
 
@@ -400,7 +400,7 @@ export async function cancelCreatorSubscription(
       ok: false,
       creatorSlug,
       creatorName,
-      message: `${creatorName} is already inactive for this fan account.`,
+      message: `${creatorName} membership is already inactive.`,
     };
   }
 
@@ -411,7 +411,7 @@ export async function cancelCreatorSubscription(
       ok: true,
       creatorSlug,
       creatorName,
-      message: `${creatorName} is already set to end on ${formatShortDate(accessEndsAt)}.`,
+      message: `${creatorName} already ends on ${formatShortDate(accessEndsAt)}.`,
     };
   }
 
@@ -456,7 +456,7 @@ export async function cancelCreatorSubscription(
     ok: true,
     creatorSlug,
     creatorName,
-    message: `${creatorName} will stay unlocked until ${formatShortDate(effectiveEndAt)}.`,
+    message: `${creatorName} stays active until ${formatShortDate(effectiveEndAt)}.`,
   };
 }
 
@@ -501,7 +501,7 @@ export async function purchaseLockedMessageUnlock(
       creatorSlug: message.conversation.creatorProfile.slug,
       title: message.previewText ?? "premium message",
       alreadyUnlocked: true,
-      message: "That premium message is already unlocked.",
+      message: "That paid drop is already unlocked.",
     };
   }
 
@@ -576,7 +576,7 @@ export async function purchaseLockedMessageUnlock(
           creatorSlug: message.conversation.creatorProfile.slug,
           title: message.previewText ?? "premium message",
           alreadyUnlocked: true,
-          message: "That premium message is already unlocked.",
+          message: "That paid drop is already unlocked.",
         };
       }
 
@@ -594,7 +594,7 @@ export async function purchaseLockedMessageUnlock(
       messageId,
       creatorSlug: message.conversation.creatorProfile.slug,
       title: message.previewText ?? "premium message",
-      message: "Unlock completed and recorded in billing history.",
+      message: "Paid drop unlocked and added to your billing history.",
     };
   }
 
@@ -606,7 +606,7 @@ export async function purchaseLockedMessageUnlock(
       creatorSlug: message.conversation.creatorProfile.slug,
       title: message.previewText ?? "premium message",
       message:
-        "Payment is pending confirmation. This unlock will appear automatically after provider confirmation.",
+        "Billing is still confirming this unlock. It will appear automatically once that finishes.",
     };
   }
 

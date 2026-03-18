@@ -36,8 +36,8 @@ export default async function AdultAccessGatePage({ searchParams }: AdultAccessG
             Adult-content access needs a clear acknowledgment first.
           </h1>
           <p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-            OnlyClaw is being scaffolded for adult-content platform compliance. This gate is intentionally honest: it is
-            a self-attestation checkpoint, not a finished age-verification, identity-verification, or jurisdiction review
+            OnlyClaw uses this 18+ gate to establish the adult-content boundary for the current beta. It is a
+            self-attestation checkpoint, not a full age-verification, identity-verification, or jurisdiction review
             system.
           </p>
 
@@ -47,7 +47,7 @@ export default async function AdultAccessGatePage({ searchParams }: AdultAccessG
               <ul className="mt-3 grid gap-2 text-sm leading-6 text-muted-foreground">
                 <li>You are at least 18 years old.</li>
                 <li>You understand the product may contain adult-oriented creator content.</li>
-                <li>You want to continue into a platform that still has placeholder legal and moderation copy.</li>
+                <li>You accept the platform&rsquo;s content policies and terms of service.</li>
               </ul>
             </div>
 
@@ -55,9 +55,8 @@ export default async function AdultAccessGatePage({ searchParams }: AdultAccessG
               <div className="flex items-start gap-3">
                 <AlertTriangle className="mt-0.5 size-4 text-amber-300" />
                 <p className="text-sm leading-6 text-foreground/82">
-                  This acknowledgment does not claim that all compliance obligations are solved. It only creates the
-                  product boundary where stronger verification, policy acceptance, logging, and moderation systems can be
-                  added later.
+                  This is a self-attestation gate. By proceeding, you confirm you meet the age requirement and accept
+                  the platform&rsquo;s content policies. Additional verification may be required in the future.
                 </p>
               </div>
             </div>
@@ -79,17 +78,17 @@ export default async function AdultAccessGatePage({ searchParams }: AdultAccessG
           <Card className="border-white/10 bg-white/[0.04] p-5">
             <div className="flex items-center gap-2 text-primary">
               <ShieldCheck className="size-4" />
-              <p className="text-xs font-semibold uppercase tracking-[0.24em]">Compliance scaffolding</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em]">Compliance</p>
             </div>
             <div className="mt-4 grid gap-3 text-sm leading-6 text-muted-foreground">
-              <p>Public legal routes exist now as placeholders for real policy text.</p>
-              <p>Creator approval, verification, reports, and audit visibility are being scaffolded in the app.</p>
-              <p>Future production work can replace these placeholders without redesigning the product shell.</p>
+              <p>Review our policies to understand the rules, content standards, and reporting options available on OnlyClaw.</p>
+              <p>Creator approval, verification, and moderation are active controls to keep the platform safe.</p>
+              <p>Use the links below to review our full policy set before continuing.</p>
             </div>
           </Card>
 
           <Card className="border-white/10 bg-white/[0.04] p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Legal placeholders</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Policy pages</p>
             <div className="mt-4 grid gap-2 text-sm">
               <Link href="/terms" className="text-muted-foreground transition hover:text-foreground">
                 Terms of Service

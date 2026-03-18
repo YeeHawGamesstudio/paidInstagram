@@ -256,11 +256,12 @@ Purpose:
 
 Defaults:
 
-- `mock` outside production safety mode when not set
+- `mock` in local development when not set
 
 Operational notes:
 
-- `mock` is not allowed in production
+- `mock` is allowed in `staging` for simulated beta purchases
+- `mock` is not allowed in `production`
 - if no real provider is configured, billing should remain intentionally unavailable
 
 ### `BILLING_PROVIDER_WEBHOOK_SECRET`
@@ -336,6 +337,8 @@ SUPABASE_SERVICE_ROLE_KEY="replace-with-staging-service-role-key"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="false"
 MEDIA_SIGNING_SECRET="replace-with-staging-secret"
+BILLING_PROVIDER="mock"
+BILLING_PROVIDER_WEBHOOK_SECRET="replace-with-a-staging-webhook-secret"
 ```
 
 ### Production
@@ -351,4 +354,15 @@ SUPABASE_SERVICE_ROLE_KEY="replace-with-production-service-role-key"
 ALLOW_DEMO_AUTH="false"
 ALLOW_DEMO_DATA_FALLBACK="false"
 MEDIA_SIGNING_SECRET="replace-with-production-secret"
+BILLING_PROVIDER="replace-with-a-real-provider"
+BILLING_PROVIDER_WEBHOOK_SECRET="replace-with-a-production-webhook-secret"
 ```
+
+## Launch Notes
+
+For a limited beta without live billing:
+
+- production must still keep `ALLOW_DEMO_AUTH="false"` and `ALLOW_DEMO_DATA_FALLBACK="false"`
+- production must not use `BILLING_PROVIDER="mock"`
+- staging may use `BILLING_PROVIDER="mock"` only for simulated purchase validation
+- treat `docs/BETA_LAUNCH_RUNBOOK.md` and `docs/LAUNCH_CHECKLIST.md` as the operational source of truth for final go-live checks

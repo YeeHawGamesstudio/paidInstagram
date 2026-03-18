@@ -31,7 +31,7 @@ type AdminModerationActionRailProps = {
     pendingLabel: string;
     value: string;
   };
-  secondaryAction: {
+  secondaryAction?: {
     label: string;
     pendingLabel: string;
     value: string;
@@ -88,14 +88,16 @@ export function AdminModerationActionRail({
                 pendingLabel={primaryAction.pendingLabel}
                 className={primaryAction.value === "RESTORE" ? "w-full" : "w-full border-rose-400/30 bg-rose-500/10 text-rose-100 hover:bg-rose-500/15"}
               />
-              <AdminModerationSubmitButton
-                variant={secondaryAction.value === "RESTORE" ? "secondary" : "outline"}
-                name="action"
-                value={secondaryAction.value}
-                idleLabel={secondaryAction.label}
-                pendingLabel={secondaryAction.pendingLabel}
-                className="w-full"
-              />
+              {secondaryAction ? (
+                <AdminModerationSubmitButton
+                  variant={secondaryAction.value === "RESTORE" ? "secondary" : "outline"}
+                  name="action"
+                  value={secondaryAction.value}
+                  idleLabel={secondaryAction.label}
+                  pendingLabel={secondaryAction.pendingLabel}
+                  className="w-full"
+                />
+              ) : null}
             </div>
           </div>
           <div className="flex justify-end">

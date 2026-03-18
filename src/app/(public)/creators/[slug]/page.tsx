@@ -114,8 +114,7 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
           <section className="grid gap-4">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Public feed</p>
-                <h2 className="mt-2 font-display text-3xl">Teaser and public posts</h2>
+                <h2 className="font-display text-3xl">Free posts</h2>
               </div>
             </div>
 
@@ -150,18 +149,14 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
               </div>
             ) : (
               <EmptyStateCard>
-                Public posts have not been styled into this profile yet, but the creator presentation and subscription flow remain ready.
+                This creator hasn&rsquo;t published any free preview posts yet. Check back soon or subscribe to get notified.
               </EmptyStateCard>
             )}
           </section>
 
           <section className="grid gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Subscriber-only preview</p>
-              <h2 className="mt-2 font-display text-3xl">Locked premium content</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Premium posts stay gated until subscriber access is active, then reveal in full within the same creator surface.
-              </p>
+              <h2 className="font-display text-3xl">Subscriber posts</h2>
             </div>
 
             {lockedPosts.length ? (
@@ -221,7 +216,7 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
                             <p className="text-sm text-foreground/75">{post.caption}</p>
                             <p className="text-sm leading-6 text-muted-foreground">{post.body}</p>
                             <div className="rounded-3xl border border-dashed border-white/15 bg-black/35 p-4 text-sm text-muted-foreground">
-                              Subscribe through the billing layer to reveal private galleries and premium creator drops instantly.
+                              Subscribe to reveal private galleries and premium drops from this creator.
                             </div>
                           </div>
                         </div>
@@ -240,30 +235,20 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
 
         <aside className="hidden lg:block">
           <Card className="sticky top-24 border-white/10 bg-[radial-gradient(circle_at_top,_rgba(201,169,110,0.16),_transparent_16rem),linear-gradient(180deg,_rgba(201,169,110,0.1),_rgba(12,12,15,0.96))] p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary">Subscribe</p>
-            <h2 className="mt-3 font-display text-4xl">{creator.formattedMonthlyPrice}</h2>
+            <h2 className="font-display text-4xl">{creator.formattedMonthlyPrice}</h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              Subscribe to unlock premium posts, private drops, and creator messaging access where it is available in the current
-              environment.
+              Subscribe to unlock premium posts, private drops, and creator message history.
             </p>
-            <div className="mt-5 rounded-3xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Why this creator converts</p>
-              <p className="mt-2 text-sm leading-6 text-foreground/82">
-                Public polish builds desire first, then the locked states keep the premium value clear without breaking the mood.
-              </p>
-            </div>
-            <div className="mt-5 rounded-3xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Compliance scaffolding</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <StatusBadge tone="success">{getCreatorApprovalStatusLabel(creator.compliance.approvalStatus)}</StatusBadge>
-                <StatusBadge tone="warning">
-                  {getCreatorVerificationStatusLabel(creator.compliance.verificationStatus)}
-                </StatusBadge>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                {creator.compliance.adultContentLabel}. Creator verification and takedown handling are scaffolded in the
-                product, but not represented as fully finalized compliance systems yet.
-              </p>
+            <ul className="mt-5 rounded-3xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-foreground/82 space-y-1">
+              <li>All subscriber-only posts</li>
+              <li>Private media drops</li>
+              <li>Direct message history</li>
+            </ul>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <StatusBadge tone="success">{getCreatorApprovalStatusLabel(creator.compliance.approvalStatus)}</StatusBadge>
+              <StatusBadge tone="warning">
+                {getCreatorVerificationStatusLabel(creator.compliance.verificationStatus)}
+              </StatusBadge>
             </div>
             <div className="mt-6 grid gap-3">
               {canAccessFanMemberships ? (
@@ -277,12 +262,12 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
                 />
               ) : (
                 <Button asChild size="lg">
-                  <Link href="/login">Access memberships</Link>
+                  <Link href="/login">Sign in to subscribe</Link>
                 </Button>
               )}
               <Button asChild variant="outline" size="lg">
                 <Link href={canAccessFanMemberships ? "/fan/subscriptions" : "/login"}>
-                  {canAccessFanMemberships ? "Manage memberships" : "Review access options"}
+                  {canAccessFanMemberships ? "Manage subscriptions" : "Sign in for more"}
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
@@ -293,7 +278,7 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
               </Button>
             </div>
             <div className="mt-5 rounded-3xl border border-white/10 bg-black/20 p-4 text-sm text-muted-foreground">
-              Validate billing behavior against the active environment configuration before inviting broader staging traffic.
+              Renews monthly. Cancel anytime.
             </div>
           </Card>
         </aside>
@@ -303,9 +288,8 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
         <Card className="border-white/10 bg-[rgba(9,9,11,0.9)] p-3 shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Subscribe</p>
               <p className="truncate font-display text-2xl">{creator.formattedMonthlyPrice}</p>
-              <p className="mt-1 truncate text-xs text-muted-foreground">Unlocks premium posts as soon as access is active.</p>
+              <p className="mt-1 truncate text-xs text-muted-foreground">Instant access to all posts.</p>
             </div>
             {canAccessFanMemberships ? (
               <CreatorSubscriptionPurchaseButton
@@ -318,13 +302,13 @@ export default async function CreatorProfilePage({ params }: CreatorProfilePageP
               />
             ) : (
               <Button asChild className="shrink-0">
-                <Link href="/login">Access</Link>
+                <Link href="/login">Sign in</Link>
               </Button>
             )}
           </div>
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <MessageCircle className="size-3.5" />
-            Premium posts unlock as soon as your access is active for this creator.
+            Instant access after subscribing.
           </div>
         </Card>
       </div>

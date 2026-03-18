@@ -26,13 +26,11 @@ export default async function FanPage() {
     <div className="grid gap-4 sm:gap-5">
       <FanPageHeader
         compact={false}
-        eyebrow="Fan home"
         title={`Welcome back, ${fanProfile.displayName}`}
-        description="Your feed blends subscriber-only drops, live creator updates, and message activity in a mobile-first premium layout."
         actions={
           <div className="grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
             <Button asChild>
-              <Link href="/fan/messages">Open inbox</Link>
+              <Link href="/fan/messages">Open messages</Link>
             </Button>
             <Button asChild variant="outline">
               <Link href="/fan/subscriptions">Manage memberships</Link>
@@ -45,9 +43,7 @@ export default async function FanPage() {
         <Card className="border-white/10 bg-[radial-gradient(circle_at_top_right,_rgba(201,169,110,0.08),_transparent_16rem),linear-gradient(180deg,_rgba(20,20,24,0.96),_rgba(11,11,14,0.98))] p-4 sm:p-5">
           <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Jump back in</p>
-              <h2 className="mt-2 font-display text-2xl sm:text-3xl">Your next premium updates are ready below</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 <StatusBadge tone="success" className="text-xs normal-case tracking-normal">
                   {includedCount} ready now
                 </StatusBadge>
@@ -55,13 +51,13 @@ export default async function FanPage() {
                   {lockedCount} locked preview{lockedCount === 1 ? "" : "s"}
                 </StatusBadge>
                 <StatusBadge tone="neutral" className="text-xs normal-case tracking-normal">
-                  {fanProfile.unreadMessages} unread messages
+                  {fanProfile.unreadMessages} unread updates
                 </StatusBadge>
               </div>
             </div>
             <div className="grid gap-2 sm:w-52">
               <Button asChild className="w-full justify-center">
-                <Link href="/fan/messages">Open inbox</Link>
+                <Link href="/fan/messages">Open messages</Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-center">
                 <Link href="/fan/subscriptions">Manage memberships</Link>
@@ -70,25 +66,7 @@ export default async function FanPage() {
           </div>
         </Card>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Live feed</p>
-            <h2 className="mt-2 font-display text-3xl">Subscriber content and previews</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Browse what is ready to open now first, then scan any locked previews that still need membership access.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <StatusBadge tone="success" className="text-xs normal-case tracking-normal">
-              Included first
-            </StatusBadge>
-            {lockedCount ? (
-              <StatusBadge tone="primary" className="text-xs normal-case tracking-normal">
-                {lockedCount} still locked
-              </StatusBadge>
-            ) : null}
-          </div>
-        </div>
+        <div />
 
         <div className="grid gap-4">
           {fanFeed.length ? (
@@ -116,17 +94,9 @@ export default async function FanPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge tone={getFanFeedAccessTone(item.access)} className="text-xs">
-                        {item.access === "INCLUDED" ? "Included with membership" : "Membership preview"}
-                      </StatusBadge>
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-muted-foreground">
-                        {item.contextLabel}
-                      </span>
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-muted-foreground">
-                        {item.access === "INCLUDED" ? "Ready in inbox" : "Preview only"}
-                      </span>
-                    </div>
+                    <StatusBadge tone={getFanFeedAccessTone(item.access)} className="text-xs">
+                      {item.access === "INCLUDED" ? "Included" : "Locked"}
+                    </StatusBadge>
 
                     <div>
                       <h3 className="font-display text-[1.85rem] leading-tight sm:text-[2.1rem]">{item.headline}</h3>
@@ -164,15 +134,14 @@ export default async function FanPage() {
                       <>
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,_rgba(8,8,10,0.22),_rgba(8,8,10,0.82))]" />
                         <div className="relative flex h-full items-end p-5">
-                          <div className="w-full rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
+                          <div className="flex w-full items-center justify-between rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
                             <div className="flex items-center gap-2 text-primary">
                               <Lock className="size-4" />
-                              <span className="text-xs font-semibold uppercase tracking-[0.2em]">Membership preview</span>
+                              <span className="text-sm font-medium text-foreground">Subscribe to unlock</span>
                             </div>
-                            <p className="mt-2 text-sm font-medium text-foreground">{item.media.label}</p>
-                            <p className="mt-2 text-sm text-foreground/80">
-                              Subscribe to unlock this creator's full drop and open it from your inbox.
-                            </p>
+                            <Button asChild size="sm" variant="outline">
+                              <Link href="/fan/subscriptions">Subscribe</Link>
+                            </Button>
                           </div>
                         </div>
                       </>
@@ -184,18 +153,10 @@ export default async function FanPage() {
           ) : (
             <EmptyStateCard>
               <div className="grid gap-4">
-                <p>
-                  Your feed is empty for now. Once memberships are active or creators publish new premium drops, this area
-                  will fill in automatically.
-                </p>
-                <div className="grid gap-2 sm:flex sm:flex-wrap">
-                  <Button asChild className="w-full justify-center sm:w-auto">
-                    <Link href="/fan/subscriptions">Browse memberships</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full justify-center sm:w-auto">
-                    <Link href="/fan/messages">Open inbox</Link>
-                  </Button>
-                </div>
+                <p>Nothing here yet. Subscribe to a creator to start seeing their posts.</p>
+                <Button asChild className="w-fit justify-center">
+                  <Link href="/discover">Browse creators</Link>
+                </Button>
               </div>
             </EmptyStateCard>
           )}
@@ -203,10 +164,7 @@ export default async function FanPage() {
       </section>
 
       <section className="grid gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">At a glance</p>
-          <h2 className="mt-2 font-display text-2xl">Membership and inbox snapshot</h2>
-        </div>
+        <h2 className="font-display text-2xl">Overview</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           <MetricCard
             label="Memberships"
@@ -218,9 +176,9 @@ export default async function FanPage() {
             detailClassName="text-xs leading-5 text-foreground/68"
           />
           <MetricCard
-            label="Unread messages"
+            label="Unread updates"
             value={fanProfile.unreadMessages}
-            detail="Creator replies and paid drops waiting in the inbox."
+            
             icon={MessageSquareText}
             className="bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
             valueClassName="text-[1.8rem] sm:text-[2rem]"
@@ -229,7 +187,7 @@ export default async function FanPage() {
           <MetricCard
             label="Monthly spend"
             value={formatAmount(fanProfile.monthlySpendCents, "usd")}
-            detail="Current active membership total before paid unlocks."
+            
             icon={Sparkles}
             className="bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
             valueClassName="text-[1.8rem] sm:text-[2rem]"

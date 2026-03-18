@@ -80,6 +80,7 @@ const appEnv =
   (parsedEnv.NODE_ENV === "production" ? "production" : "development");
 const isProduction = parsedEnv.NODE_ENV === "production";
 const isDevelopmentAppEnv = appEnv === "development";
+const isStagingAppEnv = appEnv === "staging";
 const requiresStrictLaunchSeparation = appEnv === "staging" || appEnv === "production";
 const billingProvider = parsedEnv.BILLING_PROVIDER ?? (isDevelopmentAppEnv ? "mock" : undefined);
 const allowDemoAuth = parseBoolean(parsedEnv.ALLOW_DEMO_AUTH, isDevelopmentAppEnv);
@@ -118,8 +119,12 @@ if (!isDevelopmentAppEnv && allowDemoDataFallback) {
   throw new Error("ALLOW_DEMO_DATA_FALLBACK must be disabled outside local development.");
 }
 
-if (!isDevelopmentAppEnv && billingProvider === "mock") {
-  throw new Error('BILLING_PROVIDER="mock" is not allowed outside local development.');
+if (appEnv === "production" && billingProvider === "mock") {
+  throw new Error('BILLING_PROVIDER="mock" is not allowed in production.');
+}
+
+if (!isDevelopmentAppEnv && !isStagingAppEnv && billingProvider === "mock") {
+  throw new Error('BILLING_PROVIDER="mock" is only allowed in local development or staging beta.');
 }
 
 if (billingProvider && !billingProviderWebhookSecret) {

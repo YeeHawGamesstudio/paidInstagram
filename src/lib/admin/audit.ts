@@ -4,9 +4,7 @@ import { cache } from "react";
 
 import type { Prisma } from "@/generated/prisma/client";
 import { requireRole } from "@/lib/auth/viewer";
-import { env } from "@/lib/config/env";
 import type { AdminActionLogEntry } from "@/lib/admin/demo-data";
-import { adminActionLog as demoAdminActionLog } from "@/lib/admin/demo-data";
 import { prisma } from "@/lib/prisma/client";
 
 const adminActionInclude = {
@@ -113,84 +111,35 @@ function isLowSignalAction(action: string, notes: string | null | undefined) {
 }
 
 export const listRecentAdminActions = cache(async (limit = 25): Promise<AdminActionLogEntry[]> => {
-  try {
-    await requireRole("ADMIN");
-    const referenceTime = new Date();
+  await requireRole("ADMIN");
+  const referenceTime = new Date();
 
-    const entries = await prisma.adminActionLog.findMany({
-      include: adminActionInclude,
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: limit,
-    });
+  const entries = await prisma.adminActionLog.findMany({
+    include: adminActionInclude,
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: limit,
+  });
 
-    const normalizedEntries = entries.map((entry) => {
-      const actor =
-        entry.admin.profile?.displayName ??
-        entry.admin.profile?.username ??
-        entry.admin.email;
-      const category = resolveCategory(entry);
-      const action = normalizeActionLabel(entry.action);
-      const target = resolveTargetLabel(entry);
-      const hasNotes = hasMeaningfulNotes(entry.notes);
-      const isLowSignal = isLowSignalAction(action, entry.notes);
+  return entries.map((entry) => {
+    const actor = entry.admin.profile?.displayName ?? entry.admin.profile?.username ?? entry.admin.email;
+    const action = normalizeActionLabel(entry.action);
+    const hasNotes = hasMeaningfulNotes(entry.notes);
 
-      return {
-        id: entry.id,
-        actor,
-        category,
-        action,
-        target,
-        notes: hasNotes ? entry.notes!.trim() : "No note provided.",
-        when: formatTimeAgo(entry.createdAt, referenceTime),
-        createdAt: entry.createdAt,
-        hasNotes,
-        isLowSignal,
-      };
-    });
-
-    const groupedEntries: Array<AdminActionLogEntry & { createdAt: Date }> = [];
-
-    for (const entry of normalizedEntries) {
-      const previous = groupedEntries[groupedEntries.length - 1];
-
-      if (
-        previous &&
-        previous.isLowSignal &&
-        entry.isLowSignal &&
-        previous.actor === entry.actor &&
-        previous.category === entry.category &&
-        previous.action === entry.action &&
-        previous.target === entry.target &&
-        previous.createdAt.getTime() - entry.createdAt.getTime() <= 1000 * 60 * 60 * 6
-      ) {
-        previous.groupedCount = (previous.groupedCount ?? 1) + 1;
-        previous.when = formatTimeAgo(previous.createdAt, referenceTime);
-        previous.notes = `Repeated ${previous.groupedCount} times without a moderator note.`;
-        continue;
-      }
-
-      groupedEntries.push({
-        ...entry,
-        groupedCount: 1,
-      });
-    }
-
-    return groupedEntries.map(({ createdAt: _createdAt, ...entry }) => entry);
-  } catch (error) {
-    if (!env.allowDemoDataFallback) {
-      throw error;
-    }
-
-    return demoAdminActionLog.slice(0, limit).map((entry) => ({
-      ...entry,
-      action: normalizeActionLabel(entry.action),
-      hasNotes: hasMeaningfulNotes(entry.notes),
-      isLowSignal: isLowSignalAction(entry.action, entry.notes),
+    return {
+      id: entry.id,
+      actor,
+      category: resolveCategory(entry),
+      action,
+      target: resolveTargetLabel(entry),
+      notes: hasNotes ? entry.notes!.trim() : "No note provided.",
+      when: formatTimeAgo(entry.createdAt, referenceTime),
+      hasNotes,
+      isLowSignal: isLowSignalAction(action, entry.notes),
       groupedCount: 1,
-    }));
-  }
+    };
+  });
 });
 
 export async function recordAdminAction(input: {

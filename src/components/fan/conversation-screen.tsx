@@ -67,17 +67,12 @@ export function ConversationScreen({ conversation }: ConversationScreenProps) {
             Back to inbox
           </Link>
         </Button>
-
-        <StatusBadge tone="success" className="self-start tracking-[0.22em]">
-          {conversation.creatorReplyWindow}
-        </StatusBadge>
       </div>
 
       <Card className="border-white/10 bg-[radial-gradient(circle_at_top_right,_rgba(201,169,110,0.08),_transparent_16rem),linear-gradient(180deg,_rgba(20,20,24,0.96),_rgba(11,11,14,0.98))] p-4 sm:p-5">
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">Conversation overview</p>
-            <div className="mt-3 flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <div
                 className="size-12 rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(201,169,110,0.24),_rgba(23,23,30,0.94))] bg-cover bg-center"
                 style={getAvatarStyle(conversation.creatorAvatarUrl)}
@@ -90,18 +85,13 @@ export function ConversationScreen({ conversation }: ConversationScreenProps) {
                 </p>
               </div>
             </div>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-              This thread is where creator replies, included drops, and one-time paid unlocks appear together in message history.
-            </p>
+            
           </div>
 
           <div className="grid gap-2 sm:w-60">
             <StatusBadge tone="success" className="w-fit tracking-[0.22em]">
               {conversation.creatorReplyWindow}
             </StatusBadge>
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-muted-foreground">
-              Creator messages can be reported directly from the thread if something looks wrong.
-            </div>
           </div>
         </div>
       </Card>
@@ -164,27 +154,27 @@ export function ConversationScreen({ conversation }: ConversationScreenProps) {
                         <p className="font-display text-2xl text-foreground">
                           {formatCurrency(message.locked.priceCents, message.locked.currency)}
                         </p>
-                        <p className="mt-1 text-xs text-muted-foreground">Unlock reveals the premium message and attached media in this thread.</p>
+                        <p className="mt-1 text-xs text-muted-foreground">Unlock reveals the paid message and any attached media in this thread.</p>
                       </div>
                       <form action={formAction} className="w-full sm:w-auto">
                         <input type="hidden" name="messageId" value={message.id} />
                         <Button type="submit" className="w-full sm:w-auto" disabled={isPending}>
                           {isPending ? "Unlocking..." : "Unlock paid drop"}
                         </Button>
-                      </form>
+                                                                                                                                                                                                                                                                                              </form>
                     </div>
                     <Link
                       href="/fan/billing"
                       className="mt-3 inline-flex min-h-8 items-center rounded-full px-2 text-xs text-muted-foreground transition hover:bg-white/[0.04] hover:text-foreground"
                     >
-                      Billing history will appear in Billing
+                      View in billing history
                     </Link>
                     <p className="mt-2 text-xs text-muted-foreground">{message.sentAt}</p>
                   </div>
                 </div>
-              );
+              );                    
             }
-
+                                                  
             return (
               <div
                 key={message.id}
@@ -255,10 +245,9 @@ export function ConversationScreen({ conversation }: ConversationScreenProps) {
 
         <div className="border-t border-white/6 bg-background/70 p-3 sm:p-4">
           <div className="rounded-[1.75rem] border border-dashed border-white/15 bg-white/[0.04] p-4">
-            <p className="text-sm font-medium text-foreground">This is a read-only launch thread for now.</p>
+            <p className="text-sm font-medium text-foreground">Read-only thread</p>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              You can still review message history, unlock paid drops, and report creator messages here. Sending replies stays
-              off during this launch phase so access remains controlled without making the inbox feel incomplete.
+              You can review message history, unlock paid drops, and report creator messages here. Replying to creators is not available yet.
             </p>
           </div>
         </div>

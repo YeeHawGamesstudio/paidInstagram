@@ -6,10 +6,10 @@ import { EmptyStateCard } from "@/components/shared/empty-state-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  creatorPosts,
   getCreatorPostStatusLabel,
   getCreatorPostVisibilityLabel,
 } from "@/lib/creator/demo-data";
+import { getCreatorManagedPosts } from "@/lib/creator/server-data";
 
 function getVisibilityIcon(visibility: "PUBLIC" | "SUBSCRIBER_ONLY") {
   return visibility === "PUBLIC" ? Sparkles : Lock;
@@ -39,19 +39,9 @@ function getStatusSummary(status: "PUBLISHED" | "SCHEDULED" | "DRAFT") {
   return "Still a working draft that needs review before release.";
 }
 
-function getNextStep(status: "PUBLISHED" | "SCHEDULED" | "DRAFT") {
-  if (status === "PUBLISHED") {
-    return "Check performance and decide whether this needs a follow-up teaser or duplicate.";
-  }
 
-  if (status === "SCHEDULED") {
-    return "Confirm the audience, timing, and attached media before the scheduled release.";
-  }
-
-  return "Finish the copy and media, then move this draft back through the composer.";
-}
-
-export default function CreatorPostsPage() {
+export default async function CreatorPostsPage() {
+  const creatorPosts = await getCreatorManagedPosts();
   const publishedCount = creatorPosts.filter((post) => post.status === "PUBLISHED").length;
   const scheduledCount = creatorPosts.filter((post) => post.status === "SCHEDULED").length;
   const draftCount = creatorPosts.filter((post) => post.status === "DRAFT").length;
@@ -59,9 +49,7 @@ export default function CreatorPostsPage() {
   return (
     <div className="grid gap-6">
       <CreatorPageHeader
-        eyebrow="Posts manager"
-        title="Posts, drafts, and scheduled drops"
-        description="Review public teasers, subscriber-only posts, drafts, and scheduled releases from one preview workspace."
+        title="Posts"
         actions={
           <Button asChild>
             <Link href="/creator/posts/new">Create new post</Link>
@@ -73,17 +61,14 @@ export default function CreatorPostsPage() {
         <Card className="border-emerald-500/20 bg-emerald-500/10 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Published</p>
           <p className="mt-3 font-display text-4xl">{publishedCount}</p>
-          <p className="mt-2 text-sm text-emerald-100/80">Live posts currently visible in the feed.</p>
         </Card>
         <Card className="border-amber-500/20 bg-amber-500/10 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Scheduled</p>
           <p className="mt-3 font-display text-4xl">{scheduledCount}</p>
-          <p className="mt-2 text-sm text-amber-100/80">Queued posts waiting on their release time.</p>
         </Card>
         <Card className="border-white/10 bg-white/[0.04] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Drafts</p>
           <p className="mt-3 font-display text-4xl">{draftCount}</p>
-          <p className="mt-2 text-sm text-muted-foreground">Saved ideas that still need review or media.</p>
         </Card>
       </section>
 
@@ -124,10 +109,7 @@ export default function CreatorPostsPage() {
                         <p className="mt-3 text-sm leading-6 text-muted-foreground">{post.caption}</p>
                       </div>
 
-                      <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Next step</p>
-                        <p className="mt-3 text-sm leading-6 text-foreground/85">{getNextStep(post.status)}</p>
-                      </div>
+                      
                     </div>
 
                     <div className="grid gap-3">
@@ -150,21 +132,10 @@ export default function CreatorPostsPage() {
                   </div>
 
                   <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Actions in this preview</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Post management</p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      These controls are visible for workflow review only. Editing, duplication, and archiving are not wired yet.
+                      Editing, duplication, and archiving tools are coming soon.
                     </p>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <Button type="button" disabled>
-                        Edit disabled
-                      </Button>
-                      <Button type="button" variant="outline" disabled>
-                        Duplicate disabled
-                      </Button>
-                      <Button type="button" variant="ghost" disabled>
-                        Archive disabled
-                      </Button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -172,10 +143,7 @@ export default function CreatorPostsPage() {
           );
         }) : (
           <EmptyStateCard>
-            <div className="space-y-3">
-              <p className="font-medium text-foreground">No posts yet.</p>
-              <p>Public teasers, subscriber-only posts, drafts, and scheduled releases will appear here once the creator starts publishing.</p>
-            </div>
+            <p>No posts yet. Write your first one.</p>
           </EmptyStateCard>
         )}
       </section>

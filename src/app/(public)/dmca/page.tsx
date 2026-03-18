@@ -10,7 +10,7 @@ export default function DmcaPage() {
 
   return (
     <LegalPage
-      eyebrow="Takedown placeholder"
+      eyebrow="Copyright and takedown"
       title={document.title}
       description={document.description}
       sections={document.sections}

@@ -18,7 +18,7 @@ export function AppErrorFallback({
   error,
   reset,
   title = "Something went wrong",
-  description = "OnlyClaw hit an unexpected problem while rendering this screen. You can try again, and if the issue keeps happening, use the request details in logs to investigate.",
+  description = "Something went wrong.",
 }: AppErrorFallbackProps) {
   useEffect(() => {
     console.error(
@@ -36,10 +36,7 @@ export function AppErrorFallback({
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-10 sm:px-6">
       <Card className="w-full border-white/10 bg-[linear-gradient(180deg,_rgba(18,18,22,0.98),_rgba(11,11,14,0.96))] p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">
-          Operational fallback
-        </p>
-        <h1 className="mt-3 font-display text-3xl sm:text-4xl">{title}</h1>
+        <h1 className="font-display text-3xl sm:text-4xl">{title}</h1>
         <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
           {description}
         </p>

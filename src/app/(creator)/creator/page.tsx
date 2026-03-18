@@ -9,20 +9,27 @@ import { Card } from "@/components/ui/card";
 import {
   creatorAudienceSnapshot,
   creatorComplianceSummary,
-  creatorConversations,
-  creatorPosts,
   creatorProfileSummary,
   creatorSubscribers,
   formatCreatorCurrency,
   getCreatorPostVisibilityLabel,
 } from "@/lib/creator/demo-data";
+import {
+  getCreatorConversationPreviews,
+  getCreatorManagedPosts,
+} from "@/lib/creator/server-data";
 import { getCreatorApprovalTone, getCreatorVerificationTone } from "@/lib/creator/presentation";
 import {
   getCreatorApprovalStatusLabel,
   getCreatorVerificationStatusLabel,
 } from "@/lib/compliance/scaffolding";
+import { formatCurrency } from "@/lib/formatting";
 
-export default function CreatorPage() {
+export default async function CreatorPage() {
+  const [creatorPosts, creatorConversations] = await Promise.all([
+    getCreatorManagedPosts(),
+    getCreatorConversationPreviews(),
+  ]);
   const recentPosts = creatorPosts.slice(0, 3);
   const recentConversations = creatorConversations.slice(0, 3);
   const unreadConversations = creatorConversations.filter((conversation) => conversation.unreadCount > 0).length;
@@ -32,9 +39,7 @@ export default function CreatorPage() {
   return (
     <div className="grid gap-6">
       <CreatorPageHeader
-        eyebrow="Creator dashboard"
-        title={`Studio overview for ${creatorProfileSummary.displayName}`}
-        description="Check inbox pressure, recent posts, subscriber momentum, and compliance status from one creator dashboard."
+        title={`${creatorProfileSummary.displayName}'s studio`}
         compact={false}
         actions={
           <div className="flex flex-wrap gap-3">
@@ -75,12 +80,7 @@ export default function CreatorPage() {
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)]">
         <Card className="border-white/10 bg-[linear-gradient(180deg,_rgba(19,19,24,0.98),_rgba(11,11,14,0.96))] p-5 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-creator)]">Action lane</p>
-          <h2 className="mt-2 font-display text-4xl">Start with what needs attention</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
-            Work the inbox, catch renewal risk, review scheduled content, and clear compliance follow-up before polishing the
-            profile.
-          </p>
+          <h2 className="font-display text-4xl">Action items</h2>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4">
@@ -95,7 +95,6 @@ export default function CreatorPage() {
             <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Renewal risk</p>
               <p className="mt-2 font-display text-3xl">{atRiskSubscribers}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Subscribers currently marked at risk.</p>
               <Button asChild className="mt-4" variant="outline">
                 <Link href="/creator/subscribers">Review subscribers</Link>
               </Button>
@@ -104,7 +103,6 @@ export default function CreatorPage() {
             <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4">
               <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Scheduled posts</p>
               <p className="mt-2 font-display text-3xl">{scheduledPosts}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Queued content that still needs a final check.</p>
               <Button asChild className="mt-4" variant="outline">
                 <Link href="/creator/posts">Review posts</Link>
               </Button>
@@ -120,7 +118,7 @@ export default function CreatorPage() {
                   {getCreatorVerificationStatusLabel(creatorComplianceSummary.verificationStatus)}
                 </StatusBadge>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">Verification still needs attention in the current setup.</p>
+              
               <Button asChild className="mt-4" variant="outline">
                 <Link href="/creator/compliance">Open compliance</Link>
               </Button>
@@ -141,8 +139,7 @@ export default function CreatorPage() {
         </Card>
 
         <Card className="border-white/10 bg-white/[0.04] p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary">Business snapshot</p>
-          <div className="mt-4 grid gap-3">
+          <div className="grid gap-3">
             {creatorAudienceSnapshot.map((item) => (
               <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{item.label}</p>
@@ -158,9 +155,6 @@ export default function CreatorPage() {
           </div>
           <div className="mt-5 rounded-[1.75rem] border border-white/10 bg-[var(--color-creator)]/10 p-4">
             <p className="text-sm font-medium text-foreground">{creatorProfileSummary.profileCompleteness}</p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Keep profile work secondary until inbox, pricing, and compliance priorities are under control.
-            </p>
           </div>
         </Card>
       </section>
@@ -230,7 +224,7 @@ export default function CreatorPage() {
                 </div>
                 <p className="mt-3 text-sm text-foreground/80">{conversation.lastMessagePreview}</p>
                 <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-muted-foreground">
-                  Suggested offer {formatCreatorCurrency(conversation.suggestedOfferCents)}
+                  Suggested offer {formatCurrency(conversation.suggestedOfferCents, "usd")}
                 </div>
               </div>
             ))}
@@ -242,8 +236,7 @@ export default function CreatorPage() {
         <Card className="overflow-hidden border-white/10 bg-[linear-gradient(180deg,_rgba(19,19,24,0.98),_rgba(11,11,14,0.96))]">
           <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-creator)]">Profile summary</p>
-              <h2 className="mt-2 font-display text-4xl">{creatorProfileSummary.headline}</h2>
+              <h2 className="font-display text-4xl">{creatorProfileSummary.headline}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">{creatorProfileSummary.bio}</p>
 
               <div className="mt-5 flex flex-wrap gap-2">
@@ -280,25 +273,16 @@ export default function CreatorPage() {
           <Link href="/creator/posts" className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-primary/30">
             <LayoutGrid className="size-5 text-primary" />
             <h3 className="mt-4 text-lg font-semibold">Manage posts</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Review public teasers, subscriber-only drops, drafts, and scheduled content in one place.
-            </p>
           </Link>
 
           <Link href="/creator/subscribers" className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-primary/30">
             <ShieldAlert className="size-5 text-primary" />
             <h3 className="mt-4 text-lg font-semibold">Review retention risk</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Spot VIPs, renewal risk, and fans who may still convert on one-off drops.
-            </p>
           </Link>
 
           <Link href="/creator/pricing" className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-primary/30">
             <BadgeDollarSign className="size-5 text-primary" />
             <h3 className="mt-4 text-lg font-semibold">Tune pricing</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Adjust membership pricing and locked-message defaults once the main action lane is covered.
-            </p>
           </Link>
         </div>
       </section>

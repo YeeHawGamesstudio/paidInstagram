@@ -54,7 +54,7 @@ export function CreatorShell({ children }: CreatorShellProps) {
                       Creator studio
                     </span>
                     <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-foreground/70">
-                      Mock-safe workspace
+                      Beta workspace
                     </span>
                     <SignOutButton className="h-8 px-3 text-[11px]" variant="destructive" />
                   </div>
@@ -77,7 +77,7 @@ export function CreatorShell({ children }: CreatorShellProps) {
                           isOverview ? "text-4xl sm:text-5xl" : "text-[1.9rem] sm:text-[2.35rem]",
                         )}
                       >
-                        {isOverview ? creatorProfileSummary.displayName : "Creator hub"}
+                        {isOverview ? creatorProfileSummary.displayName : "Creator studio"}
                       </h1>
                       <p className={cn("text-sm text-foreground/70", isOverview ? "mt-2" : "mt-1")}>
                         {isOverview
@@ -95,7 +95,7 @@ export function CreatorShell({ children }: CreatorShellProps) {
                   >
                     {isOverview
                       ? "Review posts, subscribers, pricing, and inbox activity from one creator workspace."
-                      : "Move between publishing, messages, subscribers, pricing, compliance, and settings without the overview hero taking over the page."}
+                      : "Move between publishing, messages, subscribers, pricing, compliance, and settings from one creator workspace."}
                   </p>
                 </div>
 
@@ -156,7 +156,7 @@ export function CreatorShell({ children }: CreatorShellProps) {
       <div className="pointer-events-none fixed right-6 top-6 hidden rounded-full border border-[var(--color-creator)]/20 bg-[var(--color-creator)]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-creator)] lg:block">
         <div className="pointer-events-auto inline-flex items-center gap-2">
           <Sparkles className="size-3.5" />
-          Premium creator flow
+          Creator Studio
         </div>
       </div>
     </>

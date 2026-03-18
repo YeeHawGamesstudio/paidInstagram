@@ -92,7 +92,7 @@ export const fanFeed: FanFeedItem[] = [
     destinationHref: "/fan/messages/luna-thread",
     publishedLabel: "12 min ago",
     headline: "After-hours voice note + neon gallery",
-    caption: "Subscriber drop from Luna's private lounge. Your membership already includes this post.",
+    caption: "Subscriber drop from Luna's private lounge. Included in subscription.",
     access: "INCLUDED",
     contextLabel: "Subscriber-only post unlocked by membership",
     media: {
@@ -152,8 +152,8 @@ export const fanSubscriptions: FanSubscription[] = [
     renewalLabel: "Renews Mar 18",
     priceMonthlyCents: luna.priceMonthlyCents,
     currency: luna.currency,
-    perks: ["Subscriber feed unlocked", "Priority reply window", "Private media drops"],
-    summary: "Your main nightly chat and gallery subscription.",
+    perks: ["Subscriber feed unlocked", "Priority creator updates", "Private media drops"],
+    summary: `${luna.displayName} -- ${formatPriceMonthly(luna.priceMonthlyCents, luna.currency)}/mo`,
   },
   {
     id: "sub-vega",
@@ -168,7 +168,7 @@ export const fanSubscriptions: FanSubscription[] = [
     priceMonthlyCents: vega.priceMonthlyCents,
     currency: vega.currency,
     perks: ["Lore-first drops", "Fantasy voice clips", "Subscriber vault access"],
-    summary: "Active membership with a renewal reminder coming up.",
+    summary: `${vega.displayName} -- ${formatPriceMonthly(vega.priceMonthlyCents, vega.currency)}/mo`,
   },
   {
     id: "sub-ivy",
@@ -183,7 +183,7 @@ export const fanSubscriptions: FanSubscription[] = [
     priceMonthlyCents: ivy.priceMonthlyCents,
     currency: ivy.currency,
     perks: ["Orbital diary access", "Soft-space galleries", "Private journal threads"],
-    summary: "Visible here so billing and membership state feels realistic.",
+    summary: `${ivy.displayName} -- ${formatPriceMonthly(ivy.priceMonthlyCents, ivy.currency)}/mo (paused)`,
   },
 ];
 
@@ -290,7 +290,7 @@ export const fanConversationThreads: FanConversationThread[] = [
         sender: "system",
         kind: "text",
         sentAt: "9:18 PM",
-        body: "Paid unlocks are mock-only in this preview and do not trigger real billing.",
+        body: "Unlocked! Content is now visible.",
       },
       {
         id: "luna-msg-6",
@@ -354,7 +354,7 @@ export const fanConversationThreads: FanConversationThread[] = [
         sender: "creator",
         kind: "text",
         sentAt: "Yesterday",
-        body: "You still have preview access to the thread, but premium replies are reserved for active subscribers.",
+        body: "Subscribe to see full replies.",
       },
       {
         id: "ivy-msg-2",
@@ -393,8 +393,8 @@ export const fanBillingEntries: FanBillingEntry[] = [
   },
   {
     id: "bill-3",
-    label: "Mock message unlock balance",
-    detail: "Preview-only wallet placeholder",
+    label: "Paid message unlock",
+    detail: "One-time unlock for premium message content",
     amountCents: 1800,
     currency: "usd",
     status: "PENDING",

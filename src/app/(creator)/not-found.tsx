@@ -5,8 +5,8 @@ export default function CreatorNotFound() {
     <CreatorStateCard
       eyebrow="Creator not found"
       title="That creator page is no longer available"
-      description="The link may be outdated, the page may have moved, or this launch slice may not include the deep link you tried to open."
-      secondaryText="Creator messaging currently stops at the inbox and composer surfaces, so thread-detail deep links are not available in this slice."
+      description="The link may be outdated, the page may have moved, or the route is not available."
+      secondaryText="Try navigating from the creator dashboard instead."
       actions={[
         { label: "Open overview", href: "/creator" },
         { label: "Open messages", href: "/creator/messages", variant: "outline" },

@@ -84,9 +84,16 @@ function getStaticChecks(): OperationalCheck[] {
   checks.push({
     id: "billing-provider",
     label: "Billing provider mode",
-    status: env.billingUsesMockProvider && env.appEnv !== "development" ? "fail" : "pass",
+    status:
+      env.billingUsesMockProvider && env.appEnv === "production"
+        ? "fail"
+        : env.billingUsesMockProvider && env.appEnv === "staging"
+          ? "warn"
+          : "pass",
     detail: env.billingUsesMockProvider
-      ? "Billing is using the mock provider. This is acceptable for local development only."
+      ? env.appEnv === "staging"
+        ? "Billing is using the mock provider for simulated beta purchases. This is acceptable in staging only."
+        : "Billing is using the mock provider. This is acceptable for local development only."
       : `Billing provider "${env.billingProvider}" is configured.`,
   });
 

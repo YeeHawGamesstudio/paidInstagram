@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
 
-import { placeholderLegalNotice, type LegalDocumentLink } from "@/lib/compliance/scaffolding";
+import { betaLegalNotice, type LegalDocumentLink } from "@/lib/compliance/scaffolding";
 
 type LegalSection = {
   heading: string;
@@ -27,8 +27,8 @@ export function LegalPage({ eyebrow, title, description, sections, relatedLinks 
       </section>
 
       <Card className="border-amber-400/20 bg-amber-400/8 p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">Placeholder notice</p>
-        <p className="mt-3 text-sm leading-7 text-foreground/82">{placeholderLegalNotice}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">Beta policy notice</p>
+        <p className="mt-3 text-sm leading-7 text-foreground/82">{betaLegalNotice}</p>
       </Card>
 
       <section className="grid gap-4">

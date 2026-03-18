@@ -28,14 +28,9 @@ export default function CreatorErrorPage({ error, reset }: CreatorErrorPageProps
 
   return (
     <CreatorStateCard
-      eyebrow="Creator fallback"
-      title="This creator screen could not load"
-      description="OnlyClaw hit an unexpected problem while loading this creator page. You can try again or jump back to another creator workflow."
-      secondaryText={
-        error.digest
-          ? `Error reference: ${error.digest}`
-          : "Try again first. If the problem keeps happening, the request details were logged for follow-up."
-      }
+      title="Something went wrong"
+      description="Something went wrong."
+      secondaryText={error.digest ? `Reference: ${error.digest}` : undefined}
       actions={[
         { label: "Open overview", href: "/creator", variant: "outline" },
         { label: "Open messages", href: "/creator/messages", variant: "outline" },

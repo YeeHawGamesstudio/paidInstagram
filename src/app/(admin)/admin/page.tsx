@@ -6,14 +6,6 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { listRecentAdminActions } from "@/lib/admin/audit";
-import {
-  adminUsers,
-  adminCreators,
-  adminReports,
-  adminReviewQueue,
-  getCreatorStateLabel,
-  getReportStatusLabel,
-} from "@/lib/admin/demo-data";
 import { getOperationalReadinessSnapshot } from "@/lib/operations/readiness";
 import {
   getAdminAuditCategoryLabel,
@@ -28,41 +20,34 @@ import {
   getAdminUserRiskLabel,
   getAdminUserRiskTone,
 } from "@/lib/admin/presentation";
+import {
+  getReportStatusLabel,
+  listAdminModerationCreators,
+  listAdminModerationReports,
+  listAdminModerationReviewQueue,
+  listAdminModerationUsers,
+} from "@/lib/moderation/service";
 
 const moderationControlStates = [
-  {
-    label: "Report SLA routing",
-    state: "Healthy",
-    detail: "Open critical reports are routed to manual review.",
-  },
-  {
-    label: "Creator compliance",
-    state: "Pending",
-    detail: "Creator approval and verification states are now visible separately.",
-  },
-  {
-    label: "18+ access gate",
-    state: "Scaffolded",
-    detail: "Public adult access now routes through an acknowledgment checkpoint.",
-  },
-  {
-    label: "Audit visibility",
-    state: "Active",
-    detail: "Admin actions have a dedicated log surface for later expansion.",
-  },
+  { label: "Report SLA routing", state: "Healthy" },
+  { label: "Creator compliance", state: "Pending" },
+  { label: "18+ access gate", state: "Active" },
+  { label: "Audit visibility", state: "Active" },
 ] as const;
 
 export default async function AdminPage() {
+  const [adminCreators, adminReports, adminReviewQueue, adminUsers, recentAdminActions, operationalReadiness] = await Promise.all([
+    listAdminModerationCreators(),
+    listAdminModerationReports(),
+    listAdminModerationReviewQueue(),
+    listAdminModerationUsers(),
+    listRecentAdminActions(4),
+    getOperationalReadinessSnapshot(),
+  ]);
   const approvalQueue = adminCreators.filter((creator) => creator.state !== "APPROVED");
-  const priorityReports = adminReports
-    .filter((report) => report.status === "OPEN" || report.severity === "critical")
-    .slice(0, 3);
-  const recentReviews = adminReviewQueue
-    .filter((item) => item.status === "OPEN" || item.status === "REVIEWED")
-    .slice(0, 3);
+  const priorityReports = adminReports.filter((report) => report.status === "OPEN" || report.severity === "critical").slice(0, 3);
+  const recentReviews = adminReviewQueue.filter((item) => item.status === "OPEN" || item.status === "REVIEWED").slice(0, 3);
   const riskyAccounts = adminUsers.filter((user) => user.riskState !== "normal").slice(0, 3);
-  const recentAdminActions = await listRecentAdminActions(4);
-  const operationalReadiness = await getOperationalReadinessSnapshot();
   const readinessIssues = operationalReadiness.checks.filter((check) => check.status !== "pass");
   const readinessTone =
     operationalReadiness.status === "fail" ? "danger" : operationalReadiness.status === "warn" ? "warning" : "success";
@@ -98,17 +83,15 @@ export default async function AdminPage() {
       label: "Readiness issues",
       value: String(readinessIssues.length),
       detail: readinessIssues[0]?.detail ?? "All readiness checks are passing.",
-      href: "/admin",
-      cta: "View checks",
+      href: "/admin/review",
+      cta: "Review queue",
     },
   ] as const;
 
   return (
     <div className="grid gap-6">
       <AdminPageHeader
-        eyebrow="Admin dashboard"
-        title="Operational dashboard"
-        description="Scan readiness, queues, and recent admin actions."
+        title="Dashboard"
         actions={
           <div className="flex flex-wrap gap-3">
             <Button asChild>
@@ -206,12 +189,10 @@ export default async function AdminPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm">Approve</Button>
-                    <Button size="sm" variant="outline">
-                      Suspend
-                    </Button>
-                    <Button size="sm" variant="ghost" disabled>
-                      Escalate
+                    <Button asChild size="sm">
+                      <Link href="/admin/creators">
+                        {creator.canRestore ? "Restore creator" : creator.canApprove ? "Review approval" : "Review creator"}
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -302,26 +283,22 @@ export default async function AdminPage() {
 
       <section className="grid gap-6 lg:grid-cols-2">
         <Card className="border-white/12 bg-white/[0.05] p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Control states</p>
-          <h2 className="mt-2 font-display text-3xl">Moderation systems</h2>
+          <h2 className="font-display text-3xl">Systems</h2>
           <div className="mt-5 grid gap-3">
             {moderationControlStates.map((item) => (
-              <div key={item.label} className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground">{item.label}</p>
-                  <StatusBadge
-                    tone={
-                      item.state === "Healthy" || item.state === "Active"
-                        ? "success"
-                        : item.state === "Pending"
-                          ? "warning"
-                          : "info"
-                    }
-                  >
-                    {item.state}
-                  </StatusBadge>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-foreground/72">{item.detail}</p>
+              <div key={item.label} className="flex items-center justify-between rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
+                <p className="text-sm font-medium text-foreground">{item.label}</p>
+                <StatusBadge
+                  tone={
+                    item.state === "Healthy" || item.state === "Active"
+                      ? "success"
+                      : item.state === "Pending"
+                        ? "warning"
+                        : "info"
+                  }
+                >
+                  {item.state}
+                </StatusBadge>
               </div>
             ))}
           </div>
@@ -345,6 +322,9 @@ export default async function AdminPage() {
                 </div>
                 <p className="mt-2 text-sm leading-6 text-foreground/76">{item.summary}</p>
                 <p className="mt-3 text-sm leading-6 text-foreground/68">{item.actionState}</p>
+                <Button asChild size="sm" variant="ghost" className="mt-3 px-0 text-foreground hover:bg-transparent">
+                  <Link href="/admin/review">Open review queue</Link>
+                </Button>
               </div>
             ))}
           </div>
@@ -352,36 +332,13 @@ export default async function AdminPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <Card className="border-white/12 bg-white/[0.05] p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Support guidance</p>
-          <h2 className="mt-2 font-display text-3xl">Runbook shortcuts</h2>
-          <div className="mt-5 grid gap-3">
-            <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Check health first</p>
-              <p className="mt-2 text-sm leading-6 text-foreground/72">
-                Start with <span className="font-mono text-foreground">/api/health</span> before escalating.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Use request IDs</p>
-              <p className="mt-2 text-sm leading-6 text-foreground/72">
-                Match tickets, logs, and webhook failures by request ID.
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-white/12 bg-black/25 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Check the runbook</p>
-              <p className="mt-2 text-sm leading-6 text-foreground/72">
-                Operational guidance lives in <span className="font-mono text-foreground">docs/operations-readiness.md</span>.
-              </p>
-            </div>
-          </div>
-        </Card>
+        
 
         <Card className="border-white/12 bg-white/[0.05] p-5">
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[var(--color-admin)]">Recent actions</p>
-              <h2 className="mt-2 font-display text-3xl">Internal log</h2>
+              <h2 className="mt-2 font-display text-3xl">Recent audit activity</h2>
             </div>
             <Users className="size-5 text-[var(--color-admin)]" />
           </div>
@@ -408,33 +365,21 @@ export default async function AdminPage() {
           <Link href="/admin/creators" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <BadgeCheck className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">Manage creators</h3>
-            <p className="mt-2 text-sm leading-6 text-foreground/72">
-              Approve, suspend, and review creator notes.
-            </p>
           </Link>
 
           <Link href="/admin/users" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <Users className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">View users</h3>
-            <p className="mt-2 text-sm leading-6 text-foreground/72">
-              Check roles, access, and risk flags.
-            </p>
           </Link>
 
           <Link href="/admin/review" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <ArrowRight className="size-5 text-[var(--color-admin)]" />
-            <h3 className="mt-4 text-lg font-semibold">Open review queue</h3>
-            <p className="mt-2 text-sm leading-6 text-foreground/72">
-              Review queued content and message templates.
-            </p>
+            <h3 className="mt-4 text-lg font-semibold">Review queue</h3>
           </Link>
 
           <Link href="/admin/audit" className="rounded-[1.5rem] border border-white/12 bg-white/[0.05] p-5 transition hover:border-[var(--color-admin)]/30">
             <ScrollText className="size-5 text-[var(--color-admin)]" />
             <h3 className="mt-4 text-lg font-semibold">Audit trail</h3>
-            <p className="mt-2 text-sm leading-6 text-foreground/72">
-              See recent moderation and compliance events.
-            </p>
           </Link>
         </div>
       </section>

@@ -127,6 +127,33 @@ Start with the items that most improve creator trust and task completion:
 - [x] Reassess the creator experience around deep links, especially since there is no message-thread detail route today.
 - [x] Make sure demo-data and placeholder states do not hide the biggest launch-edge cases creators will feel first.
 
+## Execution Status
+
+1. Shared Creator Shell And Mobile Navigation: in progress
+   Mobile nav validation across all 8 destinations still needs a final pass.
+2. Copy Density And Launch Honesty: complete
+   Creator-facing preview/dev wording was rewritten across the main creator surfaces.
+3. Dashboard And Studio Hierarchy: complete
+   The creator dashboard now reads as an action-first workspace instead of a presentation surface.
+4. Publishing Workflow Clarity: in progress
+   Text-based draft saving, publishing, and scheduling now work in beta, while media uploads are clearly deferred until a real pipeline exists.
+5. Posts Management Scanability: in progress
+   The posts manager now reads from real creator post data, but edit, duplicate, and archive are still not active.
+6. Messages And Paid-Drop Workflow Clarity: in progress
+   Creator replies and text-only paid drops are now live from the inbox, while media attachments and template saving are still deferred.
+7. Subscriber Management And CRM Usefulness: in progress
+   The subscriber roster now reads from real subscription data and `Message` routes into the live inbox flow, while tagging is still deferred.
+8. Pricing Controls And Monetization Clarity: in progress
+   Membership price now saves in beta, while locked-message, bundle, and trial controls remain draft-only until those workflows are wired.
+9. Settings And Public-Page Alignment: in progress
+   Core profile and compliance fields now save in beta, while preview plus subscriber-expectation fields still need dedicated support.
+10. Compliance And Trust Workflow Clarity: in progress
+   Compliance wording is clearer and disclosure metadata now saves from settings, but legal text and stronger verification processes are still pending.
+11. Status, Count, And Terminology Consistency: in progress
+   Main terminology is cleaner, but it should be re-checked after the remaining real-data creator workflows are finished.
+12. Empty, Loading, Error, And Deep-Link States: in progress
+   Creator not-found and data-edge handling improved, but these states should be re-tested once the remaining creator flows are live.
+
 ## Notes
 
 - This checklist is based on a read-only smoke test and UX pass.
